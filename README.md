@@ -23,6 +23,11 @@ $ source spe_env/bin/activate
 $ pip install -r requirements.txt
 ```
 
+### Launching application
+```bash
+$ python app.py
+```
+
 ## State-Spaces
 
 ![alt text](/utils/State-Space.jpg)
