@@ -3,15 +3,14 @@ import csv
 import math
 import time
 
-csv_file = 'request_delays.csv'
 
-def log_delay_to_csv(mu, delay):
+def log_delay_to_csv(mu, delay, file_path):
     """Log the delay into a CSV file."""
     # Check if file exists to write headers only once
-    file_exists = os.path.isfile(csv_file)
+    file_exists = os.path.isfile(file_path)
 
     # Open the CSV file in append mode
-    with open(csv_file, mode='a', newline='') as file:
+    with open(file_path, mode='a', newline='') as file:
         writer = csv.writer(file)
         # If file does not exist, write the header
         if not file_exists:

@@ -1,11 +1,13 @@
+import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
+matplotlib.use('Agg')  # Use a non-GUI backend
 
+# Function to generate and save an exponential distribution plot
 def generate_exponential_plot(mu, mean_mu, image_path):
-    """Generate and save an exponential distribution plot."""
+
     # Generate a range of time values
-    time_values = np.linspace(0, 10, 1000)
-    
+    time_values = np.linspace(0, int(10/mu), 1000) # changed the right extreme of the interval for lower value of mu
     # Calculate the probability density function (PDF) of the exponential distribution
     pdf = mu * np.exp(-mu * time_values)
     pdf_mean = mean_mu * np.exp(-mean_mu * time_values)

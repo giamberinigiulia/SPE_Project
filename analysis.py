@@ -1,7 +1,7 @@
 import pandas as pd
 
+# Function to calculate the rate of the delays, with a given mu 
 def analyze_csv(file_path, mu):
-    """Analyze the CSV file and return the mean delay for a given mu."""
     data = pd.read_csv(file_path)
     filtered_data = data[data['mu'] == mu]
     
