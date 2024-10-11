@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 matplotlib.use('Agg')  # Use a non-GUI backend
 
 # Function to generate and save an exponential distribution plot
-def generate_exponential_plot(mu, mean_mu, image_path):
+def generate_exponential_plot(mu, mean_mu, image_path, n):
 
     # Generate a range of time values
     time_values = np.linspace(0, int(10/mu), 1000) # changed the right extreme of the interval for lower value of mu
@@ -19,7 +19,7 @@ def generate_exponential_plot(mu, mean_mu, image_path):
 
     plt.xlabel('Time (seconds)')
     plt.ylabel('Probability Density')
-    plt.title(f'Exponential Distribution with Rate {mu} vs {mean_mu:.2f}')
+    plt.title(f'Exponential Distribution with Rate {mu} vs {mean_mu:.2f} with {n} trials')
     plt.legend()
     plt.grid(True)
     plt.savefig(image_path)  # Save the plot to a file

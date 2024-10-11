@@ -1,5 +1,5 @@
 import csv
-from flask import jsonify, send_file
+from flask import jsonify, render_template, send_file
 import numpy as np
 from tasks import cpu_bound_task, log_delay_to_csv
 from analysis import analyze_csv
@@ -27,27 +27,11 @@ def setup_routes(app):
         # Return a JSON response indicating the task was completed
         return jsonify({"message": "Task completed", "duration": delay})
 
-# # Route to display a list of buttons for each distinct 'mu' value in the CSV file
-    # @app.route('/plot', methods=['GET'])
-    # def plotSelection():
-    #     mu_values = set()
-        
-    #     # Check if the file exists
-    #     if os.path.isfile(file_path):
-    #         with open(file_path, 'r') as csvfile:
-    #             csvreader = csv.reader(csvfile)
-    #             next(csvreader)  # Skip headers
-    #             for row in csvreader:
-    #                 mu_values.add(float(row[0]))
-
-    #     # Render the template with the list of mu values
-    #     return render_template('plot_selection.html', mu_values=sorted(mu_values))  # Pass sorted values for clarity
-
     @app.route('/plot/<float:mu>', methods=['GET'])
     def plot(mu):
         # mu = float(request.args.get('mu', 1.0))  # Default mu value
-        mean_delay = analyze_csv(file_path, mu)  # Get the mean delay
-        generate_exponential_plot(mu, mean_delay, image_path)  # Generate the plot
+        mean_delay, n = analyze_csv(file_path, mu)  # Get the mean delay
+        generate_exponential_plot(mu, mean_delay, image_path, n)  # Generate the plot
         return send_file(image_path, mimetype='image/png')  # Return the image plot       
 
     @app.route('/reset', methods=['GET'])
@@ -100,3 +84,19 @@ def setup_routes(app):
                 return table_data
         else:
             return "No data found"
+
+    # Route to display a list of buttons for each distinct 'mu' value in the CSV file
+    @app.route('/plots', methods=['GET'])
+    def plotSelection():
+        mu_values = set()
+        
+        # Check if the file exists
+        if os.path.isfile(file_path):
+            with open(file_path, 'r') as csvfile:
+                csvreader = csv.reader(csvfile)
+                next(csvreader)  # Skip headers
+                for row in csvreader:
+                    mu_values.add(float(row[0]))
+
+        # Render the template with the list of mu values
+        return render_template('plot_selection.html', mu_values=sorted(mu_values))  # Pass sorted values for clarity

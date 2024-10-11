@@ -1,7 +1,16 @@
-#invoke 127.0.0.1:5000 for 50 times
-
+import numpy as np
 import requests
+import argparse
 
-for i in range(10):
-    response = requests.get('http://127.0.0.1:5000/0.5')
-    print(i)
+def main(mu):
+    for j in np.arange(0.5, mu + 0.5, 0.5):
+        for i in range(50):
+            response = requests.get(f'http://127.0.0.1:5000/{j:.2f}')  # You can replace 10.0 with other values as needed
+            print(f"Request {i + 1}: Status Code - {response.status_code}, Response - {response.json()}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Invoke a URL multiple times.')
+    parser.add_argument('mu', type=float, help='Rate mu: ')
+    args = parser.parse_args()
+
+    main(args.mu)
