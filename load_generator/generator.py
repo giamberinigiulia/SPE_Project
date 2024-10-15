@@ -1,3 +1,7 @@
+''' TODO: module description
+
+'''
+
 import requests
 import threading
 import time
@@ -5,14 +9,17 @@ from numpy import random
 
 
 class LoadGenerator:
+    ''' TODO: class description
 
-    def __init__(self, N, enter_rate, num_request, target_url):
-        self.N = N
+    '''
+
+    def __init__(self, clients_number: int, enter_rate: float, request_number: int,  target_url: str) -> None:
+        self.clients_number = clients_number
         self.enter_rate = enter_rate
-        self.num_request = num_request
+        self.num_request = request_number
         self.target_url = target_url
 
-    def __send_request(self):
+    def __send_request(self) -> None:
         try:
             waiting_time = random.exponential(1/self.enter_rate)
             time.sleep(waiting_time)
@@ -21,11 +28,11 @@ class LoadGenerator:
         except requests.exceptions.RequestException as e:
             print(f"Error: {e}")
 
-    def generate_load(self):
+    def generate_load(self) -> None:
         threads = []
 
         for _ in range(self.num_request):
-            if len(threads) >= self.N:
+            if len(threads) >= self.clients_number:
                 for thread in threads:
                     thread.join()
                 threads = []
