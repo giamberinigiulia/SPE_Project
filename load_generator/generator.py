@@ -18,6 +18,7 @@ class LoadGenerator:
         self.enter_rate = enter_rate
         self.max_time = max_time
         self.target_url = target_url
+        random.seed(10)
 
     def __send_request(self) -> None:
         passed_time = 0
