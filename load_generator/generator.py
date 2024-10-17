@@ -14,14 +14,14 @@ class LoadGenerator:
     ''' TODO: class description
 
     '''
+    
+    csv_file_name = 'load_generator/results/response_time.csv'
 
     def __init__(self, clients_number: int, enter_rate: float, max_time: int, target_url: str) -> None:
         self.clients_number = clients_number
         self.enter_rate = enter_rate
         self.max_time = max_time
         self.target_url = target_url
-
-        self.csv_file_name = 'response_time.csv'
 
         random.seed(10)
 
@@ -31,6 +31,7 @@ class LoadGenerator:
     def __send_request(self) -> None:
         passed_time = 0
         response_time = []
+
         while passed_time < self.max_time:
             start_time = time.time()
             try:
@@ -44,7 +45,7 @@ class LoadGenerator:
                 print(f"Error: {e}")
             end_time = time.time()
             passed_time += (end_time - start_time)
-        print(response_time)
+        # print(response_time)
         self.__write_csv(response_time)
 
     def __write_csv(self, response_time: [float]) -> None:
