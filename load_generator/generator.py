@@ -13,30 +13,31 @@ class LoadGenerator:
 
     '''
 
-    def __init__(self, clients_number: int, enter_rate: float, request_number: int,  target_url: str) -> None:
+    def __init__(self, clients_number: int, enter_rate: float, max_time: int, target_url: str) -> None:
         self.clients_number = clients_number
         self.enter_rate = enter_rate
-        self.num_request = request_number
+        self.max_time = max_time
         self.target_url = target_url
 
     def __send_request(self) -> None:
-        try:
-            waiting_time = random.exponential(1/self.enter_rate)
-            time.sleep(waiting_time)
-            response = requests.get(self.target_url)
-            print(f"Response: {response.status_code}, Time: {response.elapsed.total_seconds()}")
-        except requests.exceptions.RequestException as e:
-            print(f"Error: {e}")
+        passed_time = 0
+        while passed_time < self.max_time:
+            start_time = time.time()
+            try:
+                waiting_time = random.exponential(1/self.enter_rate)
+                print(waiting_time)
+                time.sleep(waiting_time)
+                response = requests.get(self.target_url)
+                print(f"Response: {response.status_code}, Time: {response.elapsed.total_seconds()}")
+            except requests.exceptions.RequestException as e:
+                print(f"Error: {e}")
+            end_time = time.time()
+            passed_time += (end_time - start_time)
 
     def generate_load(self) -> None:
         threads = []
 
-        for _ in range(self.num_request):
-            if len(threads) >= self.clients_number:
-                for thread in threads:
-                    thread.join()
-                threads = []
-
+        for _ in range(self.clients_number):
             thread = threading.Thread(target=self.__send_request)
             threads.append(thread)
             thread.start()
