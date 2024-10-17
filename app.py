@@ -7,4 +7,4 @@ app = Flask(__name__)
 setup_routes(app)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)  #add the mu paramter directly from here

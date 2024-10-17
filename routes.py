@@ -1,57 +1,44 @@
 import csv
 from flask import jsonify, render_template, send_file
-import numpy as np
-from tasks import cpu_bound_task, log_delay_to_csv
-from analysis import analyze_csv
-from plotting import generate_exponential_plot
 import os
+import numpy as np
+from analysis import DelayAnalyzer
+from plotting import PlotGenerator
+from tasks import CPUBoundTask
 
-
-image_path = "plot.png"  # Path for saving the plot image
 file_path = "request_delays.csv"
+image_path = "plot.png"
 
 def setup_routes(app):    
+    delay_analyzer = DelayAnalyzer(file_path)
+    plot_generator = PlotGenerator(image_path)
+
     @app.route('/<float:mu>', methods=['GET'])
     def process_task(mu):
-        # mu = float(request.args.get('mu', 1.0))  # Default mu value
-        
-        # Generate a delay based on the exponential distribution with rate 'mu'
         delay = np.random.exponential(1.0 / mu)
-        
-        # Simulate the CPU-bound task for the duration of the 'delay'
-        cpu_bound_task(delay)
-        
-        # Log the delay to the CSV file
-        log_delay_to_csv(mu, delay, file_path)
-
-        # Return a JSON response indicating the task was completed
+        CPUBoundTask.run(delay)
+        delay_analyzer.log_delay_to_csv(mu, delay)
         return jsonify({"message": "Task completed", "duration": delay})
 
     @app.route('/plot/<float:mu>', methods=['GET'])
     def plot(mu):
-        # mu = float(request.args.get('mu', 1.0))  # Default mu value
-        mean_delay, n = analyze_csv(file_path, mu)  # Get the mean delay
-        generate_exponential_plot(mu, mean_delay, image_path, n)  # Generate the plot
-        return send_file(image_path, mimetype='image/png')  # Return the image plot       
+        mean_delay, _ = delay_analyzer.mean_mu_observed(mu)
+        values_observed = delay_analyzer.empirical_distribution(mu)
+        plot_generator.generate_exponential_plot(mu, mean_delay, values_observed)
+        return send_file(image_path, mimetype='image/png')
 
     @app.route('/reset', methods=['GET'])
     def reset():
-        # Remove the CSV file if it exists
         if os.path.isfile(file_path):
             os.remove(file_path)
-        
-        # Return an HTTP response
         return jsonify({"message": "Reset completed"})
 
     @app.route('/csv', methods=['GET'])
     def delays():
-        """Display the CSV file contents as an interactive HTML table with DataTables."""
         if os.path.isfile(file_path):
             with open(file_path, 'r') as csvfile:
                 csvreader = csv.reader(csvfile)
                 headers = next(csvreader)
-
-                # Building the HTML page with DataTables
                 table_data = '''
                 <html>
                 <head>
@@ -71,7 +58,6 @@ def setup_routes(app):
                     <thead><tr>{}</tr></thead><tbody>
                 '''.format(''.join(['<th>{}</th>'.format(h) for h in headers]))
 
-                # Adding table rows for each entry
                 for row in csvreader:
                     table_data += '<tr>{}</tr>'.format(''.join(['<td>{}</td>'.format(r) for r in row]))
                 
@@ -80,23 +66,17 @@ def setup_routes(app):
                 </body>
                 </html>
                 '''
-
                 return table_data
         else:
             return "No data found"
 
-    # Route to display a list of buttons for each distinct 'mu' value in the CSV file
     @app.route('/plots', methods=['GET'])
-    def plotSelection():
+    def plot_selection():
         mu_values = set()
-        
-        # Check if the file exists
         if os.path.isfile(file_path):
             with open(file_path, 'r') as csvfile:
                 csvreader = csv.reader(csvfile)
-                next(csvreader)  # Skip headers
+                next(csvreader)
                 for row in csvreader:
                     mu_values.add(float(row[0]))
-
-        # Render the template with the list of mu values
-        return render_template('plot_selection.html', mu_values=sorted(mu_values))  # Pass sorted values for clarity
+        return render_template('plot_selection.html', mu_values=sorted(mu_values))
