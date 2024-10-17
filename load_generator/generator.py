@@ -44,10 +44,11 @@ class LoadGenerator:
                 print(f"Error: {e}")
             end_time = time.time()
             passed_time += (end_time - start_time)
+        print(response_time)
         self.__write_csv(response_time)
 
     def __write_csv(self, response_time: [float]) -> None:
-        with open(self.csv_file_name, 'a') as file:
+        with open(self.csv_file_name, 'a', newline='') as file:
             wr = writer(file)
             wr.writerow(response_time)
             file.close()
