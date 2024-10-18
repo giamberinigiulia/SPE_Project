@@ -12,8 +12,8 @@ def test_response_time(enter_rate: float, exit_rate: float) -> None:
 
     '''
 
-    expected_response_time = 1/enter_rate + 1/exit_rate   
-    average_response_times = generate_mean_response_times(enter_rate=enter_rate, max_time=3)
+    expected_response_time = 1/enter_rate + 1/exit_rate  
+    average_response_times = generate_mean_response_times(enter_rate=enter_rate, max_time=10)
     plot_response_times(expected_response_time, average_response_times)
     
 
@@ -34,7 +34,7 @@ def generate_mean_response_times(enter_rate: float, max_time: int) -> list[float
     mean_response_times = []
 
     # We want to skip the case with 0 client because it makes no sense, maybe we can capture this corner case
-    for trial in range(1, NUMBER_OF_TRIALS):
+    for trial in range(1, NUMBER_OF_TRIALS+1):
         lg = LoadGenerator(clients_number=trial, enter_rate=enter_rate,
                            max_time=max_time, target_url="https://example.com/")
         mean_response_times.append(compute_mean_response_time(lg))

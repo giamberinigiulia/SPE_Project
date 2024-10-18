@@ -35,18 +35,21 @@ class LoadGenerator:
         while passed_time < self.max_time:
             start_time = time.time()
             try:
+                start_response_time = time.time()
                 waiting_time = random.exponential(1/self.enter_rate)
                 time.sleep(waiting_time)
                 response = requests.get(self.target_url)
                 if response.status_code == 200:     # ignore responses with an error
-                    response_time.append(response.elapsed.total_seconds())
+                    end_request_time = time.time()
+                    #response_time.append(response.elapsed.total_seconds())
+                    response_time.append(end_request_time - start_response_time)
                 # commented only for testing purpouse
                 #print(f"Response: {response.status_code}, Time: {response.elapsed.total_seconds()}")
             except requests.exceptions.RequestException as e:
                 print(f"Error: {e}")
             end_time = time.time()
             passed_time += (end_time - start_time)
-        # print(response_time)
+        #print(passed_time)
         self.__write_csv(response_time)
 
     def __write_csv(self, response_time: [float]) -> None:
