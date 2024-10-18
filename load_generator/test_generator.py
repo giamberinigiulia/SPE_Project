@@ -4,26 +4,29 @@ import csv
 
 from generator import LoadGenerator
 
+NUMBER_OF_TRIALS = 5
 
-def plot_response_times_test(enter_rate: float, exit_rate: float) -> None:
+
+def test_response_time(enter_rate: float, exit_rate: float) -> None:
     '''Test clients' requests independence
 
     '''
 
-    wanted_waiting_time = 1/enter_rate + 1/exit_rate
-    got = np.random.randint(50, size=30)  # TODO: change with array of waiting time values
+    expected_response_time = 1/enter_rate + 1/exit_rate   
+    average_response_times = generate_mean_response_times(enter_rate=enter_rate, max_time=3)
+    plot_response_times(expected_response_time, average_response_times)
+    
 
-    plt.bar(x=range(1, 31), height=got)  # TODO: change x and height with correct values from generator function
-    plt.axhline(y=wanted_waiting_time, color='r', linestyle='--', label='1/lambda + 1/mu')
+def plot_response_times(expected_response_time: float, average_response_times: list[float]) -> None:
+    plt.bar(x=range(1, len(average_response_times) +1), height=average_response_times)
+    plt.axhline(y=expected_response_time, color='r', linestyle='--', label='1/lambda + 1/mu')
     plt.xlabel('Number of clients')
-    plt.ylabel('Waiting time')
-    plt.title('Waiting times by different numbers of clients')
+    plt.ylabel('Average response time')
+    plt.title('Average response time by different numbers of clients')
     plt.legend()
-
     plt.show()
 
-
-def generate_mean_response_times(enter_rate: float, max_time: int, number_rounds: int) -> list[float]:
+def generate_mean_response_times(enter_rate: float, max_time: int) -> list[float]:
     '''Computes the mean of the response times
 
     it returns a list containing the mean of reponse times computed using different numbers of clients
@@ -31,8 +34,8 @@ def generate_mean_response_times(enter_rate: float, max_time: int, number_rounds
     mean_response_times = []
 
     # We want to skip the case with 0 client because it makes no sense, maybe we can capture this corner case
-    for n in range(1, number_rounds):
-        lg = LoadGenerator(clients_number=n, enter_rate=enter_rate,
+    for trial in range(1, NUMBER_OF_TRIALS):
+        lg = LoadGenerator(clients_number=trial, enter_rate=enter_rate,
                            max_time=max_time, target_url="https://example.com/")
         mean_response_times.append(compute_mean_response_time(lg))
 
@@ -61,4 +64,4 @@ def fetch_times_from_csv(csv_filename: str) -> tuple[float, int]:
     return response_time, number_of_responses
 
 
-# print(generate_mean_response_times(0.2, 5, 5))
+test_response_time(enter_rate=0.2, exit_rate=2)
