@@ -14,7 +14,7 @@ class LoadGenerator:
     ''' TODO: class description
 
     '''
-    
+
     csv_file_name = 'load_generator/results/response_time.csv'
 
     def __init__(self, clients_number: int, enter_rate: float, max_time: int, target_url: str) -> None:
@@ -40,7 +40,8 @@ class LoadGenerator:
                 response = requests.get(self.target_url)
                 if response.status_code == 200:     # ignore responses with an error
                     response_time.append(response.elapsed.total_seconds())
-                print(f"Response: {response.status_code}, Time: {response.elapsed.total_seconds()}")
+                # commented only for testing purpouse
+                #print(f"Response: {response.status_code}, Time: {response.elapsed.total_seconds()}")
             except requests.exceptions.RequestException as e:
                 print(f"Error: {e}")
             end_time = time.time()
