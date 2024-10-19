@@ -1,67 +1,75 @@
+'''Testing properties of load generator.
+'''
+
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
 
 from generator import LoadGenerator
 
-NUMBER_OF_TRIALS = 5
+# Using high values will cause the test to run for a long time. 
+# It takes around 2 minutes in my machine.
+MAX_NUMBER_OF_CLIENTS = 5  
 
 
-def test_response_time(enter_rate: float, exit_rate: float) -> None:
-    '''Test clients' requests independence
+def test_client_independence(enter_rate: float, exit_rate: float) -> None:
+    '''TODO: after Lorenzo's check
 
     '''
 
-    expected_response_time = 1/enter_rate + 1/exit_rate  
-    average_response_times = generate_mean_response_times(enter_rate=enter_rate, max_time=10)
-    plot_response_times(expected_response_time, average_response_times)
-    
+    expected_average_response_time = 1/enter_rate + 1/exit_rate
+    average_response_times = get_average_response_times(enter_rate=enter_rate, max_time=10)
+    plot_average_response_times(expected_average_response_time, average_response_times)
 
-def plot_response_times(expected_response_time: float, average_response_times: list[float]) -> None:
-    plt.bar(x=range(1, len(average_response_times) +1), height=average_response_times)
-    plt.axhline(y=expected_response_time, color='r', linestyle='--', label='1/lambda + 1/mu')
+
+def plot_average_response_times(expected_average_response_time: float, average_response_times: list[float]) -> None:
+    plt.bar(x=range(1, len(average_response_times) + 1), height=average_response_times)
+    plt.axhline(y=expected_average_response_time, color='r', linestyle='--', label='1/lambda + 1/mu')
     plt.xlabel('Number of clients')
     plt.ylabel('Average response time')
     plt.title('Average response time by different numbers of clients')
     plt.legend()
     plt.show()
 
-def generate_mean_response_times(enter_rate: float, max_time: int) -> list[float]:
-    '''Computes the mean of the response times
 
-    it returns a list containing the mean of reponse times computed using different numbers of clients
+def get_average_response_times(enter_rate: float, max_time: int) -> list[float]:
     '''
-    mean_response_times = []
+    Having the enter rate and the max time for making the requests, it returns the average response times for a set of
+    load generators usings different number of clients.
+    '''
+    average_response_times = []
 
-    # We want to skip the case with 0 client because it makes no sense, maybe we can capture this corner case
-    for trial in range(1, NUMBER_OF_TRIALS+1):
-        lg = LoadGenerator(clients_number=trial, enter_rate=enter_rate,
+    # We want to skip the case with 0 client because it makes no sense, maybe we can capture this corner case by an exception
+    for client_number in range(1, MAX_NUMBER_OF_CLIENTS+1):
+        lg = LoadGenerator(clients_number=client_number, enter_rate=enter_rate,
                            max_time=max_time, target_url="https://example.com/")
-        mean_response_times.append(compute_mean_response_time(lg))
+        average_response_times.append(compute_mean_response_time(lg))
 
-    return mean_response_times
-
-
-def compute_mean_response_time(lg: LoadGenerator) -> float:
-    # extract response times from the csv and compute the mean
-    lg.generate_load()
-    response_time, number_of_responses = fetch_times_from_csv(lg.csv_file_name)
-    return response_time/number_of_responses
+    return average_response_times
 
 
-def fetch_times_from_csv(csv_filename: str) -> tuple[float, int]:
-    response_time = 0.0
+def compute_mean_response_time(load_generator: LoadGenerator) -> float:
+    ''' Extract response times from csv and return the computed average.
+    '''
+    load_generator.generate_load()
+    total_response_time, number_of_responses = get_total_response_time(load_generator.csv_file_name)
+    return total_response_time/number_of_responses
+
+
+def get_total_response_time(csv_filename: str) -> tuple[float, int]:
+    # we can pass the load generator instead of the csv filename, maybe it's a better approach for hiding implementation details
+    total_response_time = 0.0
     number_of_responses = 0
 
     with open(csv_filename, 'r', newline='') as response_time_csv:
-        response_time_reader = csv.reader(response_time_csv, delimiter=',')
+        system_response_times = csv.reader(response_time_csv, delimiter=',')
 
-        for row in response_time_reader:
-            for value in row:
-                response_time += float(value)
+        for client_response_times in system_response_times:
+            for response_time in client_response_times:
+                total_response_time += float(response_time)
                 number_of_responses += 1
 
-    return response_time, number_of_responses
+    return total_response_time, number_of_responses
 
 
-test_response_time(enter_rate=0.2, exit_rate=2)
+test_client_independence(enter_rate=0.2, exit_rate=2)
