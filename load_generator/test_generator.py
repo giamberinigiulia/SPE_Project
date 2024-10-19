@@ -9,7 +9,7 @@ from generator import LoadGenerator
 
 # Using high values will cause the test to run for a long time. 
 # It takes around 2 minutes in my machine.
-MAX_NUMBER_OF_CLIENTS = 5  
+MAX_NUMBER_OF_CLIENTS = 3
 
 
 def test_client_independence(enter_rate: float, exit_rate: float) -> None:
@@ -18,7 +18,7 @@ def test_client_independence(enter_rate: float, exit_rate: float) -> None:
     '''
 
     expected_average_response_time = 1/enter_rate + 1/exit_rate
-    average_response_times = get_average_response_times(enter_rate=enter_rate, max_time=10)
+    average_response_times = get_average_response_times(enter_rate=enter_rate, max_time=20)
     plot_average_response_times(expected_average_response_time, average_response_times)
 
 
@@ -72,4 +72,5 @@ def get_total_response_time(csv_filename: str) -> tuple[float, int]:
     return total_response_time, number_of_responses
 
 
-test_client_independence(enter_rate=0.2, exit_rate=2)
+if __name__ == '__main__':
+    test_client_independence(enter_rate=4, exit_rate=8)
