@@ -5,3 +5,4 @@ CSVs/
 images/
 *.csv
 *.png
+testKolmogorov.py
