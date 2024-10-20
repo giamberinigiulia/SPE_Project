@@ -1,6 +1,7 @@
 # Ignore virtual environtments
 /spe_env
-/old_scripts
-/old_scripts/*
+old_scripts/
+CSVs/
+images/
 *.csv
 *.png
