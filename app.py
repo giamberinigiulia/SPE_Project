@@ -23,6 +23,13 @@ app.config['MU'] = mu_value
 
 print(f"Starting Flask app with mu = {app.config['MU']}")
 
+file_path = "./CSVs/request_delays"
+image_path = "./images/plot"
+extensionFileName = "_" + str(app.config['MU']).split('.')[0] + "_" + str(app.config['MU']).split('.')[1]
+app.config['csv_path'] = file_path + extensionFileName + ".csv"
+app.config['images_path'] = image_path + extensionFileName + ".png"
+
+
 # SetUp the entry points of the application
 setup_routes(app)
 

@@ -5,6 +5,8 @@ import os
 
 class DelayAnalyzer:
     def __init__(self, file_path):
+        if not os.path.exists(file_path.split('/')[1]):
+            os.makedirs(file_path.split('/')[1])
         self.file_path = file_path
 
     def mean_mu_observed(self, mu):

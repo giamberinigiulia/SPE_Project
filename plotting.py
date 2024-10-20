@@ -1,3 +1,4 @@
+import os
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -5,6 +6,8 @@ matplotlib.use('Agg')  # Use a non-GUI backend
 
 class PlotGenerator:
     def __init__(self, image_path):
+        if not os.path.exists(image_path.split('/')[1]):
+            os.makedirs(image_path.split('/')[1])
         self.image_path = image_path
 
     def generate_exponential_plot(self, mu, mean_mu, values, n):
