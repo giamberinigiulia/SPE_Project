@@ -19,13 +19,13 @@ def setup_routes(app):
     @app.route('/', methods=['GET'])
     def process_task():
         random.seed(42)
-        start_time = time.time()
+        #start_time = time.time()
         # Sample the delay time and perform a CPU bound operation, then log the delay in the csv file
         delay = np.random.exponential(1.0 / mu)
         CPUBoundTask.run(delay)
-        end_time = time.time()
-        delay_analyzer.log_delay_to_csv(mu, end_time-start_time)
-        # delay_analyzer.log_delay_to_csv(mu, delay)
+        # end_time = time.time()
+        # delay_analyzer.log_delay_to_csv(mu, end_time-start_time)
+        delay_analyzer.log_delay_to_csv(mu, delay)
         return jsonify({"message": "Task completed", "duration": delay})
 
     @app.route('/plot/', methods=['GET'])
