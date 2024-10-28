@@ -33,7 +33,7 @@ def plot_average_response_times(expected_average_response_time: float, average_r
     plt.ylabel('Average response time')
     plt.title('Average response time by different numbers of clients')
     plt.legend()
-    plt.show()
+    plt.savefig("./data/images/response_times.png")
 
 
 def get_average_response_times(enter_rate: float, max_time: int) -> list[float]:
@@ -114,8 +114,3 @@ def compute_total_response_time(csv_filename: str) -> tuple[float, int]:
                 number_of_responses += 1
 
     return total_response_time, number_of_responses
-
-
-if __name__ == '__main__':
-    print("Launched")
-    test_client_independence(enter_rate=4, exit_rate=8)

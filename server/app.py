@@ -1,7 +1,7 @@
 from flask import Flask
 import sys
 
-from routes import setup_routes
+from .routes import setup_routes
 
 # Create a new Flask application
 app = Flask(__name__)
@@ -35,7 +35,8 @@ def setup():
     # SetUp the entry points of the application
     setup_routes(app)
 
-if __name__ == '__main__':
+def start_server():
     setup()
-    app.run(threaded=False)  # Disable multithreading
+    app.run(threaded=False)
+
 

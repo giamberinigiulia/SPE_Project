@@ -4,9 +4,9 @@ import time
 from flask import jsonify, send_file
 import os
 import numpy as np
-from analysis import DelayAnalyzer
-from plotting import PlotGenerator
-from tasks import CPUBoundTask
+from .analysis import DelayAnalyzer
+from .plotting import PlotGenerator
+from .tasks import CPUBoundTask
 
 def setup_routes(app):
     # retrieve mu value from configuration attributes of the app
