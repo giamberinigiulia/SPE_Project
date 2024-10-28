@@ -36,6 +36,6 @@ def setup():
     setup_routes(app)
 
 if __name__ == '__main__':
-    setup();
+    setup()
     app.run(threaded=False)  # Disable multithreading
 
