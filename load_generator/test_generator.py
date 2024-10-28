@@ -22,7 +22,7 @@ def test_client_independence(enter_rate: float, exit_rate: float) -> None:
     '''
 
     expected_average_response_time = 1/enter_rate + 1/exit_rate
-    average_response_times = get_average_response_times(enter_rate=enter_rate, max_time=10)
+    average_response_times = get_average_response_times(enter_rate=enter_rate, time_requests=10)
     plot_average_response_times(expected_average_response_time, average_response_times)
 
 
@@ -36,7 +36,7 @@ def plot_average_response_times(expected_average_response_time: float, average_r
     plt.savefig("./data/images/response_times.png")
 
 
-def get_average_response_times(enter_rate: float, max_time: int) -> list[float]:
+def get_average_response_times(enter_rate: float, time_requests: int) -> list[float]:
     '''Get the response times of independent load generators.
 
     Having the enter rate and the max time for making the requests, it returns the average response times for a set of
@@ -55,8 +55,7 @@ def get_average_response_times(enter_rate: float, max_time: int) -> list[float]:
 
     # TODO: We want to skip the case with 0 client because it makes no sense, maybe we can capture this corner case by an exception
     for client_number in range(1, MAX_NUMBER_OF_CLIENTS+1):
-        lg = LoadGenerator(number_clients=client_number, enter_rate=enter_rate,
-                           max_time=max_time, target_url="http://127.0.0.1:5000")
+        lg = LoadGenerator(number_clients=client_number, enter_rate=enter_rate, target_url="http://127.0.0.1:5000")
         average_response_times.append(compute_average_response_time(lg))
 
     return average_response_times
@@ -114,3 +113,7 @@ def compute_total_response_time(csv_filename: str) -> tuple[float, int]:
                 number_of_responses += 1
 
     return total_response_time, number_of_responses
+
+
+if __name__ == '__main__':
+    test_client_independence(4, 8)

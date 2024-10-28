@@ -11,13 +11,12 @@ class LoadGenerator:
 
     '''
 
-    requests_time = 10
+    max_time_requests = 10
     csv_filename = './data/csv/response_time.csv'
 
-    def __init__(self, number_clients: int, enter_rate: float, max_time: int, target_url: str) -> None:
+    def __init__(self, number_clients: int, enter_rate: float, target_url: str) -> None:
         self.clients_number = number_clients
         self.enter_rate = enter_rate
-        self.max_time = max_time
         self.target_url = target_url
 
         random.seed(10)
@@ -29,8 +28,9 @@ class LoadGenerator:
         elapsed_time = 0
         response_times = []
 
-        while elapsed_time < self.max_time:
+        while elapsed_time < self.max_time_requests:
             start_time = time.time()
+            
             try:
                 start_response_time = time.time()
                 waiting_time = random.exponential(1/self.enter_rate)
@@ -39,11 +39,10 @@ class LoadGenerator:
                 # waiting_time = random.exponential(1/8)
                 # time.sleep(waiting_time)
                 end_response_time = time.time()
-                
                 if response.status_code == 200:     # ignore responses with an error
                     end_response_time = time.time()
                     response_times.append(end_response_time - start_response_time)
-                    
+
             # TODO: handle exception
             except requests.exceptions.RequestException as e:
                 print(f"Error: {e}")

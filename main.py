@@ -49,9 +49,8 @@ if __name__ == '__main__':
     server = Process(target=start_server)
     server.start()
     time.sleep(1)
-    
-    lg = LoadGenerator(number_clients=2, enter_rate=4.0,
-                           max_time=10, target_url="http://127.0.0.1:5000")
+
+    lg = LoadGenerator(number_clients=2, enter_rate=4.0, target_url="http://127.0.0.1:5000")
     lg.generate_load()
 
     server.join()
