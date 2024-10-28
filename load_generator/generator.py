@@ -1,15 +1,9 @@
-''' TODO: module description
-
-'''
-import multiprocessing
-
 import requests
-#import threading
-from multiprocessing import Process
 import time
+import os
+from multiprocessing import Process
 from numpy import random
 from csv import writer
-import os
 
 
 class LoadGenerator:
@@ -17,18 +11,18 @@ class LoadGenerator:
 
     '''
 
-    csv_file_name = 'response_time.csv'
+    csv_filename = 'response_time.csv'
 
-    def __init__(self, clients_number: int, enter_rate: float, max_time: int, target_url: str) -> None:
-        self.clients_number = clients_number
+    def __init__(self, number_clients: int, enter_rate: float, max_time: int, target_url: str) -> None:
+        self.clients_number = number_clients
         self.enter_rate = enter_rate
         self.max_time = max_time
         self.target_url = target_url
 
         random.seed(10)
 
-        if os.path.exists(self.csv_file_name):
-            os.remove(self.csv_file_name)
+        if os.path.exists(self.csv_filename):
+            os.remove(self.csv_filename)
 
     def send_request(self) -> None:
         passed_time = 0
@@ -40,25 +34,25 @@ class LoadGenerator:
                 start_response_time = time.time()
                 waiting_time = random.exponential(1/self.enter_rate)
                 time.sleep(waiting_time)
-                #response = requests.get(self.target_url)
+                # response = requests.get(self.target_url)
                 waiting_time = random.exponential(1/8)
                 time.sleep(waiting_time)
                 end_request_time = time.time()
                 # if response.status_code == 200:     # ignore responses with an error
                 #     end_request_time = time.time()
-                    #response_time.append(response.elapsed.total_seconds())
+                # response_time.append(response.elapsed.total_seconds())
                 response_time.append(end_request_time - start_response_time)
                 # commented only for testing purpouse
-                #print(f"Response: {response.status_code}, Time: {response.elapsed.total_seconds()}")
+                # print(f"Response: {response.status_code}, Time: {response.elapsed.total_seconds()}")
             except requests.exceptions.RequestException as e:
                 print(f"Error: {e}")
             end_time = time.time()
             passed_time += (end_time - start_time)
-        #print(passed_time)
+        # print(passed_time)
         self.__write_csv(response_time)
 
-    def __write_csv(self, response_time: [float]) -> None:
-        with open(self.csv_file_name, 'a', newline='') as file:
+    def __write_csv(self, response_time: list[float]) -> None:
+        with open(self.csv_filename, 'a', newline='') as file:
             wr = writer(file)
             wr.writerow(response_time)
             file.close()
@@ -66,7 +60,6 @@ class LoadGenerator:
     def generate_load(self) -> None:
         threads = []
 
-        #multiprocessing.set_start_method('spawn')
         for _ in range(self.clients_number):
             thread = Process(target=self.send_request)
             threads.append(thread)
