@@ -1,3 +1,4 @@
+import argparse
 from multiprocessing import Process
 import os
 import shutil
@@ -25,8 +26,20 @@ if __name__ == '__main__':
     # Note: the server should be started before running this script, and it should be accessible at http://127.0.0.1:5000
 
     # py main.py -s <mu> -c <l> <t> <n>
+    
     # py main.py -mu <mu> -lambda <l> -maxtime <t> -nclients <n>
+    
+    parser = argparse.ArgumentParser(description="Process some parameters.")
+    
+    # Adding arguments to the parser
+    parser.add_argument('-mu', type=float, required=True, help='Parameter mu (e.g., rate of arrival)')
+    parser.add_argument('-lambda', type=float, required=True, dest='l', help='Parameter lambda (e.g., service rate)')
+    parser.add_argument('-maxtime', type=float, required=True, help='Maximum time to run the simulation')
+    parser.add_argument('-nclients', type=int, required=True, help='Number of clients to simulate')
 
+    # Parse the arguments
+    args = parser.parse_args()
+    
     # reset the data folder
     if os.path.exists("./data/csv"):
         shutil.rmtree("./data/csv")
@@ -34,7 +47,7 @@ if __name__ == '__main__':
     if os.path.exists("./data/images"):
         shutil.rmtree("./data/images/")
         os.makedirs("./data/images/")
-
+    '''
     # retrieve from command line n_client, lambda, maxtime, mu
     print(sys.argv)
     mu = sys.argv[1]
@@ -43,15 +56,14 @@ if __name__ == '__main__':
     client_number = int(sys.argv[4])
     help_message = f"Usage: python main.py <mu> <lambda> <maxtime> <n_client>"
     
-
-    server = Process(target=start_server, args=[mu])
+    '''
+    server = Process(target=start_server, args=[args.mu])
     server.start()
     time.sleep(2)
     
 
-    client = Process(target=start_load_generator, args=[client_number, enter_rate, max_time])
+    client = Process(target=start_load_generator, args=[args.nclients, args.l, args.maxtime])
     client.start()
 
     client.join()
     server.join()
-
