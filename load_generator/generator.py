@@ -11,7 +11,7 @@ class LoadGenerator:
 
     '''
 
-    requests_time = 10
+    # requests_time = 10
     csv_filename = './data/csv/response_time.csv'
 
     def __init__(self, number_clients: int, enter_rate: float, max_time: int, target_url: str) -> None:
