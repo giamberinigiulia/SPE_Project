@@ -11,6 +11,7 @@ class LoadGenerator:
 
     '''
 
+    # requests_time = 10
     csv_filename = './data/csv/response_time.csv'
 
     def __init__(self, number_clients: int, enter_rate: float, max_time: int, target_url: str) -> None:
@@ -25,31 +26,31 @@ class LoadGenerator:
             os.remove(self.csv_filename)
 
     def send_request(self) -> None:
-        passed_time = 0
-        response_time = []
+        elapsed_time = 0
+        response_times = []
 
-        while passed_time < self.max_time:
+        while elapsed_time < self.max_time:
             start_time = time.time()
             try:
                 start_response_time = time.time()
                 waiting_time = random.exponential(1/self.enter_rate)
                 time.sleep(waiting_time)
                 response = requests.get(self.target_url)
-                #waiting_time = random.exponential(1/8)
-                #time.sleep(waiting_time)
-                end_request_time = time.time()
+                # waiting_time = random.exponential(1/8)
+                # time.sleep(waiting_time)
+                end_response_time = time.time()
+                
                 if response.status_code == 200:     # ignore responses with an error
-                    end_request_time = time.time()
-                    response_time.append(end_request_time - start_response_time)
-                # commented only for testing purpouse
-                # print(f"Response: {response.status_code}, Time: {response.elapsed.total_seconds()}")
+                    end_response_time = time.time()
+                    response_times.append(end_response_time - start_response_time)
+                    
             # TODO: handle exception
             except requests.exceptions.RequestException as e:
                 print(f"Error: {e}")
             end_time = time.time()
-            passed_time += (end_time - start_time)
+            elapsed_time += (end_time - start_time)
         # print(passed_time)
-        self.__write_csv(response_time)
+        self.__write_csv(response_times)
 
     def __write_csv(self, response_time: list[float]) -> None:
         with open(self.csv_filename, 'a', newline='') as file:
@@ -58,12 +59,12 @@ class LoadGenerator:
             file.close()
 
     def generate_load(self) -> None:
-        threads = []
+        processes = []
 
         for _ in range(self.clients_number):
-            thread = Process(target=self.send_request)
-            threads.append(thread)
-            thread.start()
+            process = Process(target=self.send_request)
+            processes.append(process)
+            process.start()
 
-        for thread in threads:
-            thread.join()
+        for process in processes:
+            process.join()
