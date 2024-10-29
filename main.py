@@ -1,24 +1,27 @@
 import argparse
-from multiprocessing import Process
 import os
 import shutil
-import subprocess
-import sys
 import time
-
+from multiprocessing import Process
 from load_generator.generator import LoadGenerator
 from server.FlaskServer import FlaskServer
+
+CSV_FOLDER_PATH = "./data/csv"
+IMAGES_FOLDER_PATH = "./data/images"
+
 
 def start_server(mu_value):
     # Create a Server instance and run it
     server = FlaskServer(mu_value)
     server.run()
 
+
 def start_load_generator(client_number, enter_rate, max_time, target_url: str = "http://127.0.0.1:5000"):
     # Create a LoadGenerator instance and run it
     lg = LoadGenerator(number_clients=client_number, enter_rate=enter_rate,
-                                   max_time=max_time, target_url=target_url)
+                       max_time=max_time, target_url=target_url)
     lg.generate_load()
+
 
 if __name__ == '__main__':
     # parse the parameters <mu> <lambda> <maxtime> <n_client>
@@ -26,11 +29,11 @@ if __name__ == '__main__':
     # Note: the server should be started before running this script, and it should be accessible at http://127.0.0.1:5000
 
     # py main.py -s <mu> -c <l> <t> <n>
-    
+
     # py main.py -mu <mu> -lambda <l> -maxtime <t> -nclients <n>
-    
+
     parser = argparse.ArgumentParser(description="Process some parameters.")
-    
+
     # Adding arguments to the parser
     parser.add_argument('-mu', type=float, required=True, help='Parameter mu (e.g., rate of arrival)')
     parser.add_argument('-lambda', type=float, required=True, dest='l', help='Parameter lambda (e.g., service rate)')
@@ -39,14 +42,14 @@ if __name__ == '__main__':
 
     # Parse the arguments
     args = parser.parse_args()
-    
+
     # reset the data folder
-    if os.path.exists("./data/csv"):
-        shutil.rmtree("./data/csv")
-        os.makedirs("./data/csv")
-    if os.path.exists("./data/images"):
-        shutil.rmtree("./data/images/")
-        os.makedirs("./data/images/")
+    if os.path.exists(CSV_FOLDER_PATH):
+        shutil.rmtree(CSV_FOLDER_PATH)
+        os.makedirs(CSV_FOLDER_PATH)
+    if os.path.exists(IMAGES_FOLDER_PATH):
+        shutil.rmtree(IMAGES_FOLDER_PATH)
+        os.makedirs(IMAGES_FOLDER_PATH)
     '''
     # retrieve from command line n_client, lambda, maxtime, mu
     print(sys.argv)
@@ -60,7 +63,6 @@ if __name__ == '__main__':
     server = Process(target=start_server, args=[args.mu])
     server.start()
     time.sleep(2)
-    
 
     client = Process(target=start_load_generator, args=[args.nclients, args.l, args.maxtime])
     client.start()
