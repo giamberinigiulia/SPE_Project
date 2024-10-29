@@ -14,7 +14,7 @@ class FlaskServer:
         #description of the class
         A Server class that initializes a Flask application and sets up routes.
     '''
-    def __init__(self, mu_value: float = 10.0, file_path="./data/csv/request_delays", image_path="./data/images/plot"):
+    def __init__(self, mu_value: float = 10.0, file_path: str = "./data/csv", image_path: str = "./data/images"):
         # Initialize the Flask application within the class
         self.app = Flask(__name__)
 
@@ -23,8 +23,8 @@ class FlaskServer:
 
         # Set paths based on mu_value
         extensionFileName = f"_{str(self.mu_value).split('.')[0]}_{str(self.mu_value).split('.')[1]}"
-        self.csv_path = f"{file_path}{extensionFileName}.csv"
-        self.images_path = f"{image_path}{extensionFileName}.png"
+        self.csv_path = f"{file_path}/request_delays{extensionFileName}.csv"
+        self.images_path = f"{image_path}/plot{extensionFileName}.png"
 
         # Store configurations in the Flask app
         self.app.config['MU'] = self.mu_value

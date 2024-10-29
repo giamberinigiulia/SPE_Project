@@ -10,9 +10,9 @@ CSV_FOLDER_PATH = "./data/csv"
 IMAGES_FOLDER_PATH = "./data/images"
 
 
-def start_server(mu_value):
+def start_server(mu_value, file_path, images_path):
     # Create a Server instance and run it
-    server = FlaskServer(mu_value)
+    server = FlaskServer(mu_value, file_path, images_path)
     server.run()
 
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     help_message = f"Usage: python main.py <mu> <lambda> <maxtime> <n_client>"
     
     '''
-    server = Process(target=start_server, args=[args.mu])
+    server = Process(target=start_server, args=[args.mu, CSV_FOLDER_PATH, IMAGES_FOLDER_PATH])
     server.start()
     time.sleep(2)
 
