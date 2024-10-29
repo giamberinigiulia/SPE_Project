@@ -39,9 +39,8 @@ class LoadGenerator:
                 #time.sleep(waiting_time)
                 end_request_time = time.time()
                 if response.status_code == 200:     # ignore responses with an error
-                     end_request_time = time.time()
-                #response_time.append(response.elapsed.total_seconds())
-                response_time.append(end_request_time - start_response_time)
+                    end_request_time = time.time()
+                    response_time.append(end_request_time - start_response_time)
                 # commented only for testing purpouse
                 # print(f"Response: {response.status_code}, Time: {response.elapsed.total_seconds()}")
             # TODO: handle exception

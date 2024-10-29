@@ -25,5 +25,5 @@ class PlotGenerator:
         plt.title(f'Exponential Distribution with Rate {mu} vs {mean_mu:.2f} with {n} trials')
         plt.legend()
         plt.grid(True)
-        plt.savefig(self.image_path)
+        plt.savefig(self.file_path) # check this becoause the path isn't consistent and loclahost:5000/plot raise a 500 server error
         plt.close()
