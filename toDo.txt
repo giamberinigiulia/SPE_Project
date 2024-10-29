@@ -1,7 +1,9 @@
-Classe sever --> app.py
-Parametri indipendenti come variabili globali per la configurazione --> path
-Parametrizzazione da terminale
-Ricontrollare /server --> modifiche e commenti
+[x] Classe server --> app.py
+[ ] Parametri indipendenti come variabili globali per la configurazione --> path
+[ ] Parametrizzazione da terminale
+[x] Ricontrollare /server --> modifiche e commenti
 
-Costruzione monitor con accesso alla cartella dei dati --> lanciato insieme a client e server o indipendente?
---> dividere l'esecuzione in sotto-processi o sotto-terminali 
+[ ] Costruzione monitor con accesso alla cartella dei dati --> lanciato insieme a client e server o indipendente?
+    --> dividere l'esecuzione in sotto-processi o sotto-terminali 
+
+[ ] Durata del server --> può essere killato dopo un tot di tempo che non riceve richieste (?)
