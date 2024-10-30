@@ -14,7 +14,7 @@ class LoadGenerator:
     # requests_time = 10
     csv_filename = './data/csv/response_time.csv'
 
-    def __init__(self, number_clients: int, enter_rate: float, max_time: int, target_url: str) -> None:
+    def __init__(self, number_clients: int, enter_rate: float, max_time: int, target_url: str | None = None) -> None:
         self.clients_number = number_clients
         self.enter_rate = enter_rate
         self.max_time = max_time
@@ -22,6 +22,7 @@ class LoadGenerator:
 
         random.seed(10)
 
+        # TODO: remove this operation if it's done in the main both for the generator and the server
         if os.path.exists(self.csv_filename):
             os.remove(self.csv_filename)
 
@@ -35,14 +36,16 @@ class LoadGenerator:
                 start_response_time = time.time()
                 waiting_time = random.exponential(1/self.enter_rate)
                 time.sleep(waiting_time)
-                response = requests.get(self.target_url)
-                # waiting_time = random.exponential(1/8)
-                # time.sleep(waiting_time)
-                end_response_time = time.time()
-                
-                if response.status_code == 200:     # ignore responses with an error
+                if self.target_url is None:     # if it's None the generator is used for testing
+                    waiting_time = random.exponential(1/8)      # mu = 8
+                    time.sleep(waiting_time)
                     end_response_time = time.time()
                     response_times.append(end_response_time - start_response_time)
+                else:
+                    response = requests.get(self.target_url)
+                    if response.status_code == 200:     # ignore responses with an error
+                        end_response_time = time.time()
+                        response_times.append(end_response_time - start_response_time)
                     
             # TODO: handle exception
             except requests.exceptions.RequestException as e:

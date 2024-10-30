@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
-import numpy as np
 import csv
 
-from generator import LoadGenerator
+from load_generator.generator import LoadGenerator
 
 
 MAX_NUMBER_OF_CLIENTS = 5
