@@ -12,13 +12,14 @@ class LoadGenerator:
     '''
 
     # requests_time = 10
-    csv_filename = './data/csv/response_time.csv'
+    #csv_filename = './data/csv/response_time.csv'
 
-    def __init__(self, number_clients: int, enter_rate: float, max_time: int, target_url: str | None = None) -> None:
+    def __init__(self, number_clients: int, enter_rate: float, max_time: int, csv_directory: str, target_url: str | None = None) -> None:
         self.clients_number = number_clients
         self.enter_rate = enter_rate
         self.max_time = max_time
         self.target_url = target_url
+        self.csv_filename = csv_directory + "/response_time.csv"
 
         random.seed(10)
 
