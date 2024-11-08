@@ -34,15 +34,16 @@ class LoadGenerator:
         while elapsed_time < self.max_time:
             start_time = time.time()
             try:
-                start_response_time = time.time()
                 waiting_time = random.exponential(1/self.enter_rate)
                 time.sleep(waiting_time)
                 if self.target_url is None:     # if it's None the generator is used for testing
+                    start_response_time = time.time()
                     waiting_time = random.exponential(1/8)      # mu = 8
                     time.sleep(waiting_time)
                     end_response_time = time.time()
                     response_times.append(end_response_time - start_response_time)
                 else:
+                    start_response_time = time.time()
                     response = requests.get(self.target_url)
                     if response.status_code == 200:     # ignore responses with an error
                         end_response_time = time.time()

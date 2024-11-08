@@ -1,38 +1,10 @@
 import matplotlib.pyplot as plt
 import csv
 
-from load_generator.generator import LoadGenerator
+from generator.load_generator import LoadGenerator
 
 
 MAX_NUMBER_OF_CLIENTS = 5
-
-
-def test_client_independence(enter_rate: float, exit_rate: float) -> None:
-    '''Test the independence of clients.
-
-    It tests that the response time of each client is around 1/enter_rate + 1/exit_rate.  
-
-    Parameters:
-    ----------
-    enter_rate: float
-        the rate at which the client enters in the system
-    exit_rate: float
-        the rate at which the client is served by the system
-    '''
-
-    expected_average_response_time = 1/enter_rate + 1/exit_rate
-    average_response_times = get_average_response_times(enter_rate=enter_rate, max_time=10)
-    plot_average_response_times(expected_average_response_time, average_response_times)
-
-
-def plot_average_response_times(expected_average_response_time: float, average_response_times: list[float]) -> None:
-    plt.bar(x=range(1, len(average_response_times) + 1), height=average_response_times)
-    plt.axhline(y=expected_average_response_time, color='r', linestyle='--', label='1/lambda + 1/mu')
-    plt.xlabel('Number of clients')
-    plt.ylabel('Average response time')
-    plt.title('Average response time by different numbers of clients')
-    plt.legend()
-    plt.savefig("./data/images/response_times.png")
 
 
 def get_average_response_times(enter_rate: float, max_time: int) -> list[float]:
@@ -53,7 +25,7 @@ def get_average_response_times(enter_rate: float, max_time: int) -> list[float]:
     average_response_times = []
 
     # TODO: We want to skip the case with 0 client because it makes no sense, maybe we can capture this corner case by an exception
-    for client_number in range(1, MAX_NUMBER_OF_CLIENTS+1):
+    for client_number in range(2, MAX_NUMBER_OF_CLIENTS+1):
         lg = LoadGenerator(number_clients=client_number, enter_rate=enter_rate,
                            max_time=max_time, target_url="http://127.0.0.1:5000")
         average_response_times.append(compute_average_response_time(lg))
