@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
+from scipy.integrate import solve_ivp
 
 from generator.load_generator import LoadGenerator
 
@@ -110,9 +111,40 @@ def rate_matrix(num_clients, arrival_rate, service_rate):
     return R
 
 
+def forward_equations(Q, t_max, initial_state_probs):
+    """
+    Solve the forward Kolmogorov equations (dπ/dt = Q * π) numerically.
+
+    Parameters:
+    Q (numpy.ndarray): The rate (generator) matrix of the CTMC.
+    t_max (float): The total time for the simulation.
+    initial_state_probs (numpy.ndarray): Initial state probability distribution.
+
+    Returns:
+    probabilities (numpy.ndarray): Matrix of probabilities for each state at each time point.
+    """
+
+    t_points = np.linspace(0, t_max, 100)
+
+    def ode_system(t, pi):
+        return Q.T @ pi
+
+    # Solve the system of ODEs using an initial condition
+    solution = solve_ivp(ode_system, [0, t_max], initial_state_probs, t_eval=t_points)
+
+    return solution.y.T
+
+
+def compute_forward_equations(Q, initial_state, t_max):
+    initial_state_probs = np.zeros(Q.shape[0])
+    initial_state_probs[initial_state] = 1.0  # Start with 100% probability in the initial state
+    probabilities_forward = forward_equations(Q, t_max, initial_state_probs)
+    return probabilities_forward
+
+
 if __name__ == '__main__':
     num_clients = 4
     arrival_rate = 2
     service_rate = 3
     R = rate_matrix(num_clients, arrival_rate, service_rate)
-    print(R)
+    print(compute_forward_equations(R, 0, 30))
