@@ -19,7 +19,7 @@ class LoadGenerator:
         self.arrival_rate = arrival_rate
         self.max_time = max_time
         self.target_url = target_url
-        self.csv_filename = csv_directory + "/response_time.csv"
+        self.csv_filename = csv_directory + "/response_times.csv"
 
         random.seed(10)
 
