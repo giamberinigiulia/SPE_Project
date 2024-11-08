@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import csv
 import numpy as np
 from scipy.integrate import solve_ivp
+from scipy.special import label
 
 from generator.load_generator import LoadGenerator
 
@@ -92,23 +93,23 @@ def compute_total_response_time(csv_filename: str) -> tuple[float, int]:
 def rate_matrix(num_clients, arrival_rate, service_rate):
 
     N = num_clients
-    R = np.zeros((N + 1, N + 1))
+    Q = np.zeros((N + 1, N + 1))
 
     for i in range(N + 1):
         if i < N:  # Only if we are not at the maximum state
-            R[i, i + 1] = arrival_rate * (N-i)
+            Q[i, i + 1] = arrival_rate * (N-i)
 
         if i > 0:  # Only if we are not at the minimum state (0 clients)
-            R[i, i - 1] = service_rate
+            Q[i, i - 1] = service_rate
 
         if i == 0:  # Special case: state 0, where only arrivals are possible
-            R[i, i] = -arrival_rate * (N-i)
+            Q[i, i] = -arrival_rate * (N-i)
         elif i == N:  # Special case: state N, where only departures are possible
-            R[i, i] = -service_rate
+            Q[i, i] = -service_rate
         else:
-            R[i, i] = -(R[i, i + 1] + R[i, i - 1])
+            Q[i, i] = -(Q[i, i + 1] + Q[i, i - 1])
 
-    return R
+    return Q
 
 
 def forward_equations(Q, t_max, initial_state_probs):
@@ -142,9 +143,32 @@ def compute_forward_equations(Q, initial_state, t_max):
     return probabilities_forward
 
 
+def compute_art(N, arrival_rate, service_rate, probabilities_forward):
+    rtt = N/(service_rate*(1-probabilities_forward[-1, -1]))
+    art = rtt - 1/arrival_rate
+    return art
+
+
+def plot_art(N, theoretical_arts, measured_arts):
+
+    bar_width = 0.35
+    x = np.arange(len(N))
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(x - bar_width / 2, theoretical_arts, bar_width, label='Theoretical', color='skyblue', edgecolor='black')
+    plt.bar(x + bar_width / 2, measured_arts, bar_width, label='Measured', color='orange', edgecolor='black')
+    plt.title("Average response time: measured vs Theoretical")
+    plt.xlabel("Numbers of clients")
+    plt.ylabel("Average response time")
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+
 if __name__ == '__main__':
     num_clients = 4
     arrival_rate = 2
     service_rate = 3
-    R = rate_matrix(num_clients, arrival_rate, service_rate)
-    print(compute_forward_equations(R, 0, 30))
+    Q = rate_matrix(num_clients, arrival_rate, service_rate)
+    prob = compute_forward_equations(Q, 0, 30)
+    print(prob)
