@@ -20,9 +20,9 @@ def start_server(mu_value, file_path, images_path):
     server.run()
 
 
-def start_load_generator(client_number, enter_rate, max_time, data_folder_csv, target_url: str = URL):
+def start_load_generator(client_number, arrival_rate, max_time, data_folder_csv, target_url: str = URL):
     # Create a LoadGenerator instance and run it
-    lg = LoadGenerator(number_clients=client_number, enter_rate=enter_rate,
+    lg = LoadGenerator(number_clients=client_number, arrival_rate=arrival_rate,
                        max_time=max_time, csv_directory=data_folder_csv, target_url=target_url)
     lg.generate_load()
 

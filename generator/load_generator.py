@@ -14,9 +14,9 @@ class LoadGenerator:
     # requests_time = 10
     #csv_filename = './data/csv/response_time.csv'
 
-    def __init__(self, number_clients: int, enter_rate: float, max_time: int, csv_directory: str, target_url: str | None = None) -> None:
-        self.clients_number = number_clients
-        self.enter_rate = enter_rate
+    def __init__(self, num_clients: int, arrival_rate: float, max_time: int, csv_directory: str, target_url: str | None = None) -> None:
+        self.num_clients = num_clients
+        self.arrival_rate = arrival_rate
         self.max_time = max_time
         self.target_url = target_url
         self.csv_filename = csv_directory + "/response_time.csv"
@@ -34,7 +34,7 @@ class LoadGenerator:
         while elapsed_time < self.max_time:
             start_time = time.time()
             try:
-                waiting_time = random.exponential(1/self.enter_rate)
+                waiting_time = random.exponential(1/self.arrival_rate)
                 time.sleep(waiting_time)
                 if self.target_url is None:     # if it's None the generator is used for testing
                     start_response_time = time.time()
@@ -54,19 +54,19 @@ class LoadGenerator:
                 print(f"Error: {e}")
             end_time = time.time()
             elapsed_time += (end_time - start_time)
-        # print(passed_time)
+        
         self.__write_csv(response_times)
 
-    def __write_csv(self, response_time: list[float]) -> None:
+    def __write_csv(self, response_times: list[float]) -> None:
         with open(self.csv_filename, 'a', newline='') as file:
             wr = writer(file)
-            wr.writerow(response_time)
+            wr.writerow(response_times)
             file.close()
 
     def generate_load(self) -> None:
         processes = []
 
-        for _ in range(self.clients_number):
+        for _ in range(self.num_clients):
             process = Process(target=self.send_request)
             processes.append(process)
             process.start()
