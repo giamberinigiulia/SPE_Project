@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import csv
+import numpy as np
 
 from generator.load_generator import LoadGenerator
 
@@ -85,3 +86,33 @@ def compute_total_response_time(csv_filename: str) -> tuple[float, int]:
                 number_of_responses += 1
 
     return total_response_time, number_of_responses
+
+
+def rate_matrix(num_clients, arrival_rate, service_rate):
+
+    N = num_clients
+    R = np.zeros((N + 1, N + 1))
+
+    for i in range(N + 1):
+        if i < N:  # Only if we are not at the maximum state
+            R[i, i + 1] = arrival_rate * (N-i)
+
+        if i > 0:  # Only if we are not at the minimum state (0 clients)
+            R[i, i - 1] = service_rate
+
+        if i == 0:  # Special case: state 0, where only arrivals are possible
+            R[i, i] = -arrival_rate * (N-i)
+        elif i == N:  # Special case: state N, where only departures are possible
+            R[i, i] = -service_rate
+        else:
+            R[i, i] = -(R[i, i + 1] + R[i, i - 1])
+
+    return R
+
+
+if __name__ == '__main__':
+    num_clients = 4
+    arrival_rate = 2
+    service_rate = 3
+    R = rate_matrix(num_clients, arrival_rate, service_rate)
+    print(R)
