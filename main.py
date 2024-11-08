@@ -5,7 +5,7 @@ import time
 import datetime
 import ConfigJsonManager
 from multiprocessing import Process
-from load_generator.generator import LoadGenerator
+from generator.load_generator import LoadGenerator
 from server.FlaskServer import FlaskServer
 
 # CSV_FOLDER_PATH = "./data/csv"
