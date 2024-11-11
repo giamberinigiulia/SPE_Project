@@ -7,12 +7,6 @@ from csv import writer
 
 
 class LoadGenerator:
-    ''' TODO: class description
-
-    '''
-
-    # requests_time = 10
-    #csv_filename = './data/csv/response_time.csv'
 
     def __init__(self, num_clients: int, arrival_rate: float, max_time: int, csv_directory: str, target_url: str | None = None) -> None:
         self.num_clients = num_clients

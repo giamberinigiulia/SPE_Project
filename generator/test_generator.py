@@ -8,7 +8,7 @@ from .load_generator import LoadGenerator
 
 
 INIT_NUMBER_OF_CLIENTS = 2
-MAX_NUMBER_OF_CLIENTS = 10
+MAX_NUMBER_OF_CLIENTS = 5
 
 
 def get_average_response_times(arrival_rate: float, max_time: int) -> tuple[list[float], list[float]]:
@@ -137,7 +137,8 @@ def compute_forward_equations(Q: numpy.ndarray, initial_state: int, t_max: int) 
 
 
 def compute_art(N: int, arrival_rate: float, service_rate: float, probabilities_forward: numpy.ndarray) -> float:
-    rtt = N/(service_rate*(1-probabilities_forward[-1, 0])) # changed because pi_N is the state where I have N clients waiting to be served
+    # changed because pi_N is the state where I have N clients waiting to be served
+    rtt = N/(service_rate*(1-probabilities_forward[-1, 0]))
     art = rtt - 1/arrival_rate
     return art
 
@@ -148,13 +149,14 @@ def plot_art(N: int, theoretical_arts: list[float], measured_arts: list[float]) 
     x = np.arange(INIT_NUMBER_OF_CLIENTS, MAX_NUMBER_OF_CLIENTS+1)
 
     plt.figure(figsize=(10, 6))
-    plt.bar(x - bar_width / 2, theoretical_arts, bar_width, label='Theoretical', color='skyblue', edgecolor='black', alpha=1)
+    plt.bar(x - bar_width / 2, theoretical_arts, bar_width,
+            label='Theoretical', color='skyblue', edgecolor='black', alpha=1)
     plt.bar(x + bar_width / 2, measured_arts, bar_width, label='Measured', color='orange', edgecolor='black', alpha=1)
     plt.title("Average response time: theoretical vs measured")
     plt.xlabel("Number of clients")
     plt.ylabel("Average response time")
     plt.legend()
-    #plt.show()
+    # plt.show()
     plt.savefig("./data/art.png")
     plt.close()
 
@@ -166,10 +168,10 @@ if __name__ == '__main__':
     # Q = rate_matrix(num_clients, arrival_rate, service_rate)
     # prob = compute_forward_equations(Q, 0, 30)
     # print(prob)
-    #print(get_average_response_times(7, 5))
+    # print(get_average_response_times(7, 5))
 
-    #theoretical_arts, measured_arts = get_average_response_times(2, 20)
-    #plot_art(MAX_NUMBER_OF_CLIENTS, theoretical_arts, measured_arts)
+    # theoretical_arts, measured_arts = get_average_response_times(2, 20)
+    # plot_art(MAX_NUMBER_OF_CLIENTS, theoretical_arts, measured_arts)
     Q = rate_matrix(5, 2, 8)
     prob = compute_forward_equations(Q, 0, 30)
     print(prob)

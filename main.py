@@ -3,14 +3,11 @@ import os
 import shutil
 import time
 import datetime
-import ConfigJsonManager
+import json_config_manager as manager
+import generator.test_generator as tg
 from multiprocessing import Process
-from generator.test_generator import get_average_response_times
-from generator.test_generator import plot_art
-from server.FlaskServer import FlaskServer
+from server.flask_server import FlaskServer
 
-# CSV_FOLDER_PATH = "./data/csv"
-# IMAGES_FOLDER_PATH = "./data/images"
 FOLDER_PATH = "./data"
 URL = "http://127.0.0.1:5000"
 
@@ -26,8 +23,8 @@ def start_load_generator(client_number, arrival_rate, max_time, data_folder_csv,
     # lg = LoadGenerator(number_clients=client_number, arrival_rate=arrival_rate,
     #                    max_time=max_time, csv_directory=data_folder_csv, target_url=target_url)
     # lg.generate_load()
-    theoretical_arts, measured_arts = get_average_response_times(arrival_rate=arrival_rate, max_time=max_time)
-    plot_art(client_number, theoretical_arts, measured_arts)
+    theoretical_arts, measured_arts = tg.get_average_response_times(arrival_rate=arrival_rate, max_time=max_time)
+    tg.plot_art(client_number, theoretical_arts, measured_arts)
 
 
 if __name__ == '__main__':
@@ -60,7 +57,7 @@ if __name__ == '__main__':
         max_time = args.t 
 
     elif args.mode == "j":
-        mu_rate, lambda_rate, number_clients, max_time = ConfigJsonManager.read_json(args.c)
+        mu_rate, lambda_rate, number_clients, max_time = manager.read_json(args.c)
 
     # Create data folder based on current date and time
     current_time = datetime.datetime.now()
@@ -77,7 +74,7 @@ if __name__ == '__main__':
     os.makedirs(data_folder_csv)
     os.makedirs(data_folder_images)
     
-    ConfigJsonManager.generate_json(mu_rate, lambda_rate, number_clients, max_time, data_folder)
+    manager.generate_json(mu_rate, lambda_rate, number_clients, max_time, data_folder)
 
     server = Process(target=start_server, args=[mu_rate, data_folder_csv, data_folder_images])
     server.start()

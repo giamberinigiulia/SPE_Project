@@ -4,9 +4,9 @@ import os                                    # For file operations (deleting fil
 import random                                # For setting random seed
 import numpy as np
 
-from server.DelayAnalyzer import DelayAnalyzer
-from server.CPUBoundTask import CPUBoundTask
-from server.PlotGenerator import PlotGenerator
+from server.delay_analyzer import DelayAnalyzer
+from server.cpubound_task import CPUBoundTask
+from server.plot_generator import PlotGenerator
 
 
 class FlaskServer:
@@ -14,6 +14,7 @@ class FlaskServer:
         #description of the class
         A Server class that initializes a Flask application and sets up routes.
     '''
+
     def __init__(self, mu_value: float = 10.0, file_path: str = "./data/csv", image_path: str = "./data/images"):
         # Initialize the Flask application within the class
         self.app = Flask(__name__)
@@ -34,11 +35,10 @@ class FlaskServer:
         # Initialize routes
         self.__setup_routes()
 
-
     def __setup_routes(self):
         # retrieve mu value from configuration attributes of the app
         mu = self.app.config.get('MU')
-        
+
         # inizialize the delay_analyzer and the plot_generator with file names
         delay_analyzer = DelayAnalyzer(self.app.config['csv_path'])
         plot_generator = PlotGenerator(self.app.config['images_path'])
@@ -68,7 +68,6 @@ class FlaskServer:
             if os.path.isfile(self.app.config['csv_path']):
                 os.remove(self.app.config['csv_path'])
             return jsonify({"message": "Reset completed"})
-
 
     def run(self):
         # Start the Flask application without multithreading
