@@ -5,7 +5,8 @@ import time
 import datetime
 import ConfigJsonManager
 from multiprocessing import Process
-from generator.load_generator import LoadGenerator
+from generator.test_generator import get_average_response_times
+from generator.test_generator import plot_art
 from server.FlaskServer import FlaskServer
 
 # CSV_FOLDER_PATH = "./data/csv"
@@ -22,9 +23,11 @@ def start_server(mu_value, file_path, images_path):
 
 def start_load_generator(client_number, arrival_rate, max_time, data_folder_csv, target_url: str = URL):
     # Create a LoadGenerator instance and run it
-    lg = LoadGenerator(number_clients=client_number, arrival_rate=arrival_rate,
-                       max_time=max_time, csv_directory=data_folder_csv, target_url=target_url)
-    lg.generate_load()
+    # lg = LoadGenerator(number_clients=client_number, arrival_rate=arrival_rate,
+    #                    max_time=max_time, csv_directory=data_folder_csv, target_url=target_url)
+    # lg.generate_load()
+    theoretical_arts, measured_arts = get_average_response_times(arrival_rate=arrival_rate, max_time=max_time)
+    plot_art(client_number, theoretical_arts, measured_arts)
 
 
 if __name__ == '__main__':

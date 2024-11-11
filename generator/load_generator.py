@@ -36,9 +36,9 @@ class LoadGenerator:
             try:
                 waiting_time = random.exponential(1/self.arrival_rate)
                 time.sleep(waiting_time)
-                if self.target_url is None:     # if it's None the generator is used for testing
-                    start_response_time = time.time()
-                    waiting_time = random.exponential(1/8)      # mu = 8
+                if self.target_url is None:     # if it's None the generator is used for testing 
+                    start_response_time = time.time() 
+                    waiting_time = random.exponential(1/8)      # mu = 8 TODO: change it!
                     time.sleep(waiting_time)
                     end_response_time = time.time()
                     response_times.append(end_response_time - start_response_time)
@@ -49,12 +49,11 @@ class LoadGenerator:
                         end_response_time = time.time()
                         response_times.append(end_response_time - start_response_time)
                     
-            # TODO: handle exception
             except requests.exceptions.RequestException as e:
                 print(f"Error: {e}")
             end_time = time.time()
             elapsed_time += (end_time - start_time)
-        
+    
         self.__write_csv(response_times)
 
     def __write_csv(self, response_times: list[float]) -> None:

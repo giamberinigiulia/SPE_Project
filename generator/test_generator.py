@@ -4,11 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-from load_generator import LoadGenerator
+from .load_generator import LoadGenerator
 
 
 INIT_NUMBER_OF_CLIENTS = 2
-MAX_NUMBER_OF_CLIENTS = 5
+MAX_NUMBER_OF_CLIENTS = 10
 
 
 def get_average_response_times(arrival_rate: float, max_time: int) -> tuple[list[float], list[float]]:
@@ -17,12 +17,12 @@ def get_average_response_times(arrival_rate: float, max_time: int) -> tuple[list
     measured_arts = []
 
     for num_clients in range(INIT_NUMBER_OF_CLIENTS, MAX_NUMBER_OF_CLIENTS+1):
-        theoretical_arts.append(compute_art(N=num_clients, arrival_rate=arrival_rate, service_rate=8, probabilities_forward=compute_forward_equations(
-            Q=rate_matrix(num_clients=num_clients, arrival_rate=arrival_rate, service_rate=8), initial_state=0, t_max=max_time)))
+        theoretical_arts.append(compute_art(N=num_clients, arrival_rate=arrival_rate, service_rate=20, probabilities_forward=compute_forward_equations(
+            Q=rate_matrix(num_clients=num_clients, arrival_rate=arrival_rate, service_rate=20), initial_state=0, t_max=max_time)))
         print(f"[DEBUG] Added theoretical ART number {num_clients}.")
-        1
+
         lg = LoadGenerator(num_clients=num_clients, arrival_rate=arrival_rate,
-                           max_time=max_time, csv_directory="./data")
+                           max_time=max_time, csv_directory="./data", target_url="http://127.0.0.1:5000")
         measured_arts.append(compute_average_response_time(lg))
         print(f"[DEBUG] Added measured ART number {num_clients}.")
 
@@ -154,7 +154,9 @@ def plot_art(N: int, theoretical_arts: list[float], measured_arts: list[float]) 
     plt.xlabel("Number of clients")
     plt.ylabel("Average response time")
     plt.legend()
-    plt.show()
+    #plt.show()
+    plt.savefig("./data/art.png")
+    plt.close()
 
 
 if __name__ == '__main__':
@@ -165,5 +167,9 @@ if __name__ == '__main__':
     # prob = compute_forward_equations(Q, 0, 30)
     # print(prob)
     #print(get_average_response_times(7, 5))
-    theoretical_arts, measured_arts = get_average_response_times(2, 10)
-    plot_art(MAX_NUMBER_OF_CLIENTS, theoretical_arts, measured_arts)
+
+    #theoretical_arts, measured_arts = get_average_response_times(2, 20)
+    #plot_art(MAX_NUMBER_OF_CLIENTS, theoretical_arts, measured_arts)
+    Q = rate_matrix(5, 2, 8)
+    prob = compute_forward_equations(Q, 0, 30)
+    print(prob)
