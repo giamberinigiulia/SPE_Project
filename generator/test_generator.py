@@ -11,38 +11,25 @@ MIN_CLIENT_COUNT = 2
 
 
 def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float]]:
-
+    '''
+    TODO: add documentation
+    '''
     theoretical_arts = []
     measured_arts = []
 
     for client_count in range(MIN_CLIENT_COUNT, max_client_count+1):
-        theoretical_arts.append(compute_art(client_count, arrival_rate, service_rate, compute_forward_equations(
-            rate_matrix(client_count, arrival_rate, service_rate), 0, client_request_time)))
-        print(f"[DEBUG] Added theoretical ART number {client_count}.")
+        theoretical_arts.append(compute_art(client_count, arrival_rate,
+                                service_rate, client_request_time))
+        print(f"[DEBUG] Computed theoretical ART for {client_count} clients.")
 
-        lg = LoadGenerator(client_count, arrival_rate, "http://127.0.0.1:5000",
-                           client_request_time, "./data")
-        measured_arts.append(compute_average_response_time(lg))
-        print(f"[DEBUG] Added measured ART number {client_count}.")
+        measured_arts.append(compute_average_response_time(LoadGenerator(
+            client_count, arrival_rate, "http://127.0.0.1:5000", client_request_time, "./data")))
+        print(f"[DEBUG] Computed measured ART for {client_count} clients.")
 
     return theoretical_arts, measured_arts
 
 
 def compute_average_response_time(load_generator: LoadGenerator) -> float:
-    ''' Compute the average response time of the load generator.
-
-    It returns the calculated average of registered times after generating the load on the server.
-
-    Parameters:
-    -----------
-    load_generator: LoadGenerator
-        the load generator object from which we want to extract the average
-
-    Returns:
-    --------
-    The average of response times of the clients.
-    '''
-
     load_generator.generate_load()
     total_response_time, number_of_responses = compute_total_response_time(
         load_generator.csv_filename)
@@ -50,25 +37,6 @@ def compute_average_response_time(load_generator: LoadGenerator) -> float:
 
 
 def compute_total_response_time(csv_filename: str) -> tuple[float, int]:
-    '''Computes the total response time and the number of responses from a CSV file.
-
-    This function reads a CSV file where each row contains response times recorded for a given client in seconds. 
-    It calculates the total sum of all response times across all rows.
-
-    Parameters:
-    -----------
-    csv_filename : str
-        The path to the CSV file containing response times. Each row represents a set of response times
-        separated by commas.
-
-    Returns:
-    --------
-    tuple[float, int]
-        A tuple where:
-        - The first element (float) is the total sum of all response times.
-        - The second element (int) is the number of responses.
-    '''
-
     total_response_time = 0.0
     number_of_responses = 0
 
@@ -84,7 +52,6 @@ def compute_total_response_time(csv_filename: str) -> tuple[float, int]:
 
 
 def rate_matrix(client_count: int, arrival_rate: float, service_rate: float) -> numpy.ndarray:
-
     N = client_count
     Q = np.zeros((N + 1, N + 1))
 
@@ -106,18 +73,6 @@ def rate_matrix(client_count: int, arrival_rate: float, service_rate: float) -> 
 
 
 def forward_equations(Q: numpy.ndarray, t_max: int, initial_state_probs: numpy.ndarray) -> numpy.ndarray:
-    """
-    Solve the forward Kolmogorov equations (dπ/dt = Q * π) numerically.
-
-    Parameters:
-    Q (numpy.ndarray): The rate (generator) matrix of the CTMC.
-    t_max (int): The total time for the simulation.
-    initial_state_probs (numpy.ndarray): Initial state probability distribution.
-
-    Returns:
-    solution (numpy.ndarray): Matrix of probabilities for each state at each time point.
-    """
-
     t_points = np.linspace(0, t_max, 100)
 
     def ode_system(t, pi):
@@ -136,17 +91,27 @@ def compute_forward_equations(Q: numpy.ndarray, initial_state: int, t_max: int) 
     return probabilities_forward
 
 
-def compute_art(N: int, arrival_rate: float, service_rate: float, probabilities_forward: numpy.ndarray) -> float:
-    # changed because pi_N is the state where I have N clients waiting to be served
-    rtt = N/(service_rate*(1-probabilities_forward[-1, 0]))
+def compute_art(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> float:
+    '''
+    TODO: add documentation because we're exposing it
+    '''
+
+    Q = rate_matrix(client_count, arrival_rate, service_rate)
+    probabilities_forward = compute_forward_equations(
+        Q=Q, initial_state=0, t_max=client_request_time)
+    # pi_N is the state where I have all the clients waiting to be served
+    rtt = client_count/(service_rate*(1-probabilities_forward[-1, 0]))
     art = rtt - 1/arrival_rate
     return art
 
 
-def plot_art(N: int, theoretical_arts: list[float], measured_arts: list[float]) -> None:
-
+def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: list[float]) -> None:
+    '''
+    TODO: add documentation
+    '''
+    
     bar_width = 0.35
-    x = np.arange(MIN_CLIENT_COUNT, N+1)
+    x = np.arange(MIN_CLIENT_COUNT, client_count + 1)
 
     plt.figure(figsize=(10, 6))
     plt.bar(x - bar_width / 2, theoretical_arts, bar_width,
