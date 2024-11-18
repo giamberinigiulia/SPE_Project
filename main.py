@@ -18,13 +18,13 @@ def start_server(mu_value, file_path, images_path):
     server.run()
 
 
-def start_load_generator(client_number, arrival_rate, max_time, data_folder_csv, target_url: str = URL):
+def start_load_generator(client_count, arrival_rate, max_time, data_folder_csv, target_url: str = URL):
     # Create a LoadGenerator instance and run it
-    # lg = LoadGenerator(number_clients=client_number, arrival_rate=arrival_rate,
+    # lg = LoadGenerator(client_count=client_number, arrival_rate=arrival_rate,
     #                    max_time=max_time, csv_directory=data_folder_csv, target_url=target_url)
     # lg.generate_load()
     theoretical_arts, measured_arts = tg.get_average_response_times(arrival_rate=arrival_rate, max_time=max_time)
-    tg.plot_art(client_number, theoretical_arts, measured_arts)
+    tg.plot_art(client_count, theoretical_arts, measured_arts)
 
 
 if __name__ == '__main__':
@@ -53,11 +53,11 @@ if __name__ == '__main__':
     if args.mode == "v":
         mu_rate = args.m
         lambda_rate = args.l
-        number_clients = args.n
+        client_count = args.n
         max_time = args.t 
 
     elif args.mode == "j":
-        mu_rate, lambda_rate, number_clients, max_time = manager.read_json(args.c)
+        mu_rate, lambda_rate, client_count, max_time = manager.read_json(args.c)
 
     # Create data folder based on current date and time
     current_time = datetime.datetime.now()
@@ -74,14 +74,14 @@ if __name__ == '__main__':
     os.makedirs(data_folder_csv)
     os.makedirs(data_folder_images)
     
-    manager.generate_json(mu_rate, lambda_rate, number_clients, max_time, data_folder)
+    manager.generate_json(mu_rate, lambda_rate, client_count, max_time, data_folder)
 
     server = Process(target=start_server, args=[mu_rate, data_folder_csv, data_folder_images])
     server.start()
     time.sleep(2)
 
-    #client = Process(target=start_load_generator, args=[number_clients, lambda_rate, max_time, data_folder_csv])
-    #client.start()
+    client = Process(target=start_load_generator, args=[client_count, lambda_rate, max_time, data_folder_csv])
+    client.start()
 
-    #client.join()
+    client.join()
     server.join()

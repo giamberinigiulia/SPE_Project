@@ -16,15 +16,15 @@ def get_average_response_times(arrival_rate: float, max_time: int) -> tuple[list
     theoretical_arts = []
     measured_arts = []
 
-    for num_clients in range(INIT_NUMBER_OF_CLIENTS, MAX_NUMBER_OF_CLIENTS+1):
-        theoretical_arts.append(compute_art(N=num_clients, arrival_rate=arrival_rate, service_rate=20, probabilities_forward=compute_forward_equations(
-            Q=rate_matrix(num_clients=num_clients, arrival_rate=arrival_rate, service_rate=20), initial_state=0, t_max=max_time)))
-        print(f"[DEBUG] Added theoretical ART number {num_clients}.")
+    for client_count in range(INIT_NUMBER_OF_CLIENTS, MAX_NUMBER_OF_CLIENTS+1):
+        theoretical_arts.append(compute_art(N=client_count, arrival_rate=arrival_rate, service_rate=20, probabilities_forward=compute_forward_equations(
+            Q=rate_matrix(client_count=client_count, arrival_rate=arrival_rate, service_rate=20), initial_state=0, t_max=max_time)))
+        print(f"[DEBUG] Added theoretical ART number {client_count}.")
 
-        lg = LoadGenerator(num_clients=num_clients, arrival_rate=arrival_rate,
-                           max_time=max_time, csv_directory="./data", target_url="http://127.0.0.1:5000")
+        lg = LoadGenerator(client_count=client_count, arrival_rate=arrival_rate,
+                           client_request_time=max_time, csv_directory="./data", target_url="http://127.0.0.1:5000")
         measured_arts.append(compute_average_response_time(lg))
-        print(f"[DEBUG] Added measured ART number {num_clients}.")
+        print(f"[DEBUG] Added measured ART number {client_count}.")
 
     return theoretical_arts, measured_arts
 
@@ -83,9 +83,9 @@ def compute_total_response_time(csv_filename: str) -> tuple[float, int]:
     return total_response_time, number_of_responses
 
 
-def rate_matrix(num_clients: int, arrival_rate: float, service_rate: float) -> numpy.ndarray:
+def rate_matrix(client_count: int, arrival_rate: float, service_rate: float) -> numpy.ndarray:
 
-    N = num_clients
+    N = client_count
     Q = np.zeros((N + 1, N + 1))
 
     for i in range(N + 1):
@@ -159,9 +159,3 @@ def plot_art(N: int, theoretical_arts: list[float], measured_arts: list[float]) 
     # plt.show()
     plt.savefig("./data/art.png")
     plt.close()
-
-
-if __name__ == '__main__':
-    Q = rate_matrix(5, 2, 8)
-    prob = compute_forward_equations(Q, 0, 30)
-    print(prob)
