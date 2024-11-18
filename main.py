@@ -80,8 +80,8 @@ if __name__ == '__main__':
     server.start()
     time.sleep(2)
 
-    client = Process(target=start_load_generator, args=[number_clients, lambda_rate, max_time, data_folder_csv])
-    client.start()
+    #client = Process(target=start_load_generator, args=[number_clients, lambda_rate, max_time, data_folder_csv])
+    #client.start()
 
-    client.join()
+    #client.join()
     server.join()

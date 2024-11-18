@@ -146,7 +146,7 @@ def compute_art(N: int, arrival_rate: float, service_rate: float, probabilities_
 def plot_art(N: int, theoretical_arts: list[float], measured_arts: list[float]) -> None:
 
     bar_width = 0.35
-    x = np.arange(INIT_NUMBER_OF_CLIENTS, MAX_NUMBER_OF_CLIENTS+1)
+    x = np.arange(INIT_NUMBER_OF_CLIENTS, N+1)
 
     plt.figure(figsize=(10, 6))
     plt.bar(x - bar_width / 2, theoretical_arts, bar_width,
@@ -162,16 +162,6 @@ def plot_art(N: int, theoretical_arts: list[float], measured_arts: list[float]) 
 
 
 if __name__ == '__main__':
-    # num_clients = 4
-    # arrival_rate = 2
-    # service_rate = 3
-    # Q = rate_matrix(num_clients, arrival_rate, service_rate)
-    # prob = compute_forward_equations(Q, 0, 30)
-    # print(prob)
-    # print(get_average_response_times(7, 5))
-
-    # theoretical_arts, measured_arts = get_average_response_times(2, 20)
-    # plot_art(MAX_NUMBER_OF_CLIENTS, theoretical_arts, measured_arts)
     Q = rate_matrix(5, 2, 8)
     prob = compute_forward_equations(Q, 0, 30)
     print(prob)
