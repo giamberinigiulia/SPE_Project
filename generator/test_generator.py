@@ -7,22 +7,21 @@ from scipy.integrate import solve_ivp
 from .load_generator import LoadGenerator
 
 
-INIT_NUMBER_OF_CLIENTS = 2
-MAX_NUMBER_OF_CLIENTS = 5
+MIN_CLIENT_COUNT = 2
 
 
-def get_average_response_times(arrival_rate: float, max_time: int) -> tuple[list[float], list[float]]:
+def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float]]:
 
     theoretical_arts = []
     measured_arts = []
 
-    for client_count in range(INIT_NUMBER_OF_CLIENTS, MAX_NUMBER_OF_CLIENTS+1):
-        theoretical_arts.append(compute_art(N=client_count, arrival_rate=arrival_rate, service_rate=20, probabilities_forward=compute_forward_equations(
-            Q=rate_matrix(client_count=client_count, arrival_rate=arrival_rate, service_rate=20), initial_state=0, t_max=max_time)))
+    for client_count in range(MIN_CLIENT_COUNT, max_client_count+1):
+        theoretical_arts.append(compute_art(client_count, arrival_rate, service_rate, compute_forward_equations(
+            rate_matrix(client_count, arrival_rate, service_rate), 0, client_request_time)))
         print(f"[DEBUG] Added theoretical ART number {client_count}.")
 
-        lg = LoadGenerator(client_count=client_count, arrival_rate=arrival_rate,
-                           client_request_time=max_time, csv_directory="./data", target_url="http://127.0.0.1:5000")
+        lg = LoadGenerator(client_count, arrival_rate, "http://127.0.0.1:5000",
+                           client_request_time, "./data")
         measured_arts.append(compute_average_response_time(lg))
         print(f"[DEBUG] Added measured ART number {client_count}.")
 
@@ -45,7 +44,8 @@ def compute_average_response_time(load_generator: LoadGenerator) -> float:
     '''
 
     load_generator.generate_load()
-    total_response_time, number_of_responses = compute_total_response_time(load_generator.csv_filename)
+    total_response_time, number_of_responses = compute_total_response_time(
+        load_generator.csv_filename)
     return total_response_time/number_of_responses
 
 
@@ -146,12 +146,13 @@ def compute_art(N: int, arrival_rate: float, service_rate: float, probabilities_
 def plot_art(N: int, theoretical_arts: list[float], measured_arts: list[float]) -> None:
 
     bar_width = 0.35
-    x = np.arange(INIT_NUMBER_OF_CLIENTS, N+1)
+    x = np.arange(MIN_CLIENT_COUNT, N+1)
 
     plt.figure(figsize=(10, 6))
     plt.bar(x - bar_width / 2, theoretical_arts, bar_width,
             label='Theoretical', color='skyblue', edgecolor='black', alpha=1)
-    plt.bar(x + bar_width / 2, measured_arts, bar_width, label='Measured', color='orange', edgecolor='black', alpha=1)
+    plt.bar(x + bar_width / 2, measured_arts, bar_width,
+            label='Measured', color='orange', edgecolor='black', alpha=1)
     plt.title("Average response time: theoretical vs measured")
     plt.xlabel("Number of clients")
     plt.ylabel("Average response time")

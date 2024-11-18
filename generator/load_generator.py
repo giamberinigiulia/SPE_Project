@@ -34,12 +34,12 @@ class LoadGenerator:
                 response = requests.get(self.target_url)
                 if response.status_code == 200:     # ignore responses with an error
                     end_response_time = time.time()
-                    response_times.append(end_response_time - start_response_time)    
+                    response_times.append(end_response_time - start_response_time)
             except requests.exceptions.RequestException as e:
                 print(f"Error: {e}")
             end_time = time.time()
             elapsed_time += (end_time - start_time)
-    
+
         self.__write_csv(response_times)
 
     def __write_csv(self, response_times: list[float]) -> None:
