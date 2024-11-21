@@ -11,7 +11,7 @@ def run_locust_test(users):
         "locust", "--headless",
         "-u", str(users),
         "-r", str(users),  # Spawn rate matches the user count
-        "-t", "20s",  # Test duration of 1 minute
+        "-t", "20s",  # Test duration of 20 seconds
         "-H", "http://127.0.0.1:5000"
     ]
 
