@@ -4,71 +4,49 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-from .load_generator import LoadGenerator
+from generator.load_generator import LoadGenerator
 
 
-INIT_NUMBER_OF_CLIENTS = 2
-MAX_NUMBER_OF_CLIENTS = 5
+MIN_CLIENT_COUNT = 2
 
 
-def get_average_response_times(arrival_rate: float, max_time: int) -> tuple[list[float], list[float]]:
+def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float]]:
+    """
+    Computes theoretical and measured average response times (ARTs) for a range of client counts.
+
+    Parameters:
+        max_client_count (int): The maximum number of clients to simulate.
+        arrival_rate (float): The rate (in requests per second) at which clients generate requests.
+        service_rate (float): The rate (in requests per second) at which the server processes requests.
+        client_request_time (int): The time (in seconds) in which the client can send requests.
+
+    Returns:
+        tuple[list[float], list[float]]: 
+            - A list of theoretical average response times.
+            - A list of measured average response times.
+    """
 
     theoretical_arts = []
     measured_arts = []
 
-    for num_clients in range(INIT_NUMBER_OF_CLIENTS, MAX_NUMBER_OF_CLIENTS+1):
-        theoretical_arts.append(compute_art(N=num_clients, arrival_rate=arrival_rate, service_rate=20, probabilities_forward=compute_forward_equations(
-            Q=rate_matrix(num_clients=num_clients, arrival_rate=arrival_rate, service_rate=20), initial_state=0, t_max=max_time)))
-        print(f"[DEBUG] Added theoretical ART number {num_clients}.")
+    for client_count in range(MIN_CLIENT_COUNT, max_client_count+1):
+        theoretical_arts.append(compute_art(client_count, arrival_rate,
+                                service_rate, client_request_time))
+        print(f"[DEBUG] Computed theoretical ART for {client_count} clients.")
 
-        lg = LoadGenerator(num_clients=num_clients, arrival_rate=arrival_rate,
-                           max_time=max_time, csv_directory="./data", target_url="http://127.0.0.1:5000")
-        measured_arts.append(compute_average_response_time(lg))
-        print(f"[DEBUG] Added measured ART number {num_clients}.")
+        measured_arts.append(compute_average_response_time(LoadGenerator(
+            client_count, arrival_rate, "http://127.0.0.1:5000", client_request_time, "./data")))
+        print(f"[DEBUG] Computed measured ART for {client_count} clients.")
 
     return theoretical_arts, measured_arts
 
 
 def compute_average_response_time(load_generator: LoadGenerator) -> float:
-    ''' Compute the average response time of the load generator.
-
-    It returns the calculated average of registered times after generating the load on the server.
-
-    Parameters:
-    -----------
-    load_generator: LoadGenerator
-        the load generator object from which we want to extract the average
-
-    Returns:
-    --------
-    The average of response times of the clients.
-    '''
-
     load_generator.generate_load()
-    total_response_time, number_of_responses = compute_total_response_time(load_generator.csv_filename)
-    return total_response_time/number_of_responses
+    return compute_total_response_time(load_generator.csv_filename)
 
 
-def compute_total_response_time(csv_filename: str) -> tuple[float, int]:
-    '''Computes the total response time and the number of responses from a CSV file.
-
-    This function reads a CSV file where each row contains response times recorded for a given client in seconds. 
-    It calculates the total sum of all response times across all rows.
-
-    Parameters:
-    -----------
-    csv_filename : str
-        The path to the CSV file containing response times. Each row represents a set of response times
-        separated by commas.
-
-    Returns:
-    --------
-    tuple[float, int]
-        A tuple where:
-        - The first element (float) is the total sum of all response times.
-        - The second element (int) is the number of responses.
-    '''
-
+def compute_total_response_time(csv_filename: str) -> float:
     total_response_time = 0.0
     number_of_responses = 0
 
@@ -80,12 +58,11 @@ def compute_total_response_time(csv_filename: str) -> tuple[float, int]:
                 total_response_time += float(response_time)
                 number_of_responses += 1
 
-    return total_response_time, number_of_responses
+    return total_response_time / number_of_responses
 
 
-def rate_matrix(num_clients: int, arrival_rate: float, service_rate: float) -> numpy.ndarray:
-
-    N = num_clients
+def rate_matrix(client_count: int, arrival_rate: float, service_rate: float) -> numpy.ndarray:
+    N = client_count
     Q = np.zeros((N + 1, N + 1))
 
     for i in range(N + 1):
@@ -106,18 +83,6 @@ def rate_matrix(num_clients: int, arrival_rate: float, service_rate: float) -> n
 
 
 def forward_equations(Q: numpy.ndarray, t_max: int, initial_state_probs: numpy.ndarray) -> numpy.ndarray:
-    """
-    Solve the forward Kolmogorov equations (dπ/dt = Q * π) numerically.
-
-    Parameters:
-    Q (numpy.ndarray): The rate (generator) matrix of the CTMC.
-    t_max (int): The total time for the simulation.
-    initial_state_probs (numpy.ndarray): Initial state probability distribution.
-
-    Returns:
-    solution (numpy.ndarray): Matrix of probabilities for each state at each time point.
-    """
-
     t_points = np.linspace(0, t_max, 100)
 
     def ode_system(t, pi):
@@ -136,32 +101,80 @@ def compute_forward_equations(Q: numpy.ndarray, initial_state: int, t_max: int) 
     return probabilities_forward
 
 
-def compute_art(N: int, arrival_rate: float, service_rate: float, probabilities_forward: numpy.ndarray) -> float:
-    # changed because pi_N is the state where I have N clients waiting to be served
-    rtt = N/(service_rate*(1-probabilities_forward[-1, 0]))
+def compute_art(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> float:
+    """
+    Computes the theoretical Average Response Time (ART) for a system based on queueing theory.
+
+    Parameters:
+        client_count (int): The number of clients interacting with the server.
+        arrival_rate (float): The rate (in requests per second) at which clients generate requests.
+        service_rate (float): The rate (in requests per second) at which the server processes requests.
+        client_request_time (int): The time (in seconds) in which the client can send requests.
+
+    Returns:
+        float: 
+            Theoretical Average Response Time (ART) in seconds.
+
+    Notes:
+        - The ART is derived from queueing theory and considers the time a client spends waiting in the queue 
+          and being served.
+        - This function uses the forward equations method to compute the steady-state probabilities 
+          required for ART estimation.
+    """
+
+    Q = rate_matrix(client_count, arrival_rate, service_rate)
+    probabilities_forward = compute_forward_equations(
+        Q=Q, initial_state=0, t_max=client_request_time)
+    # pi_N is the state where I have all the clients waiting to be served
+    rtt = client_count/(service_rate*(1-probabilities_forward[-1, 0]))
     art = rtt - 1/arrival_rate
     return art
 
 
-def plot_art(N: int, theoretical_arts: list[float], measured_arts: list[float]) -> None:
+def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: list[float], figure_name: str | None = None) -> None:
+    """
+    Generates a bar chart comparing theoretical and measured average response times (ARTs).
+
+    Parameters:
+        client_count (int): 
+            The maximum number of clients simulated in the ART computations.
+        theoretical_arts (list[float]): 
+            A list of theoretical ART values corresponding to the client counts.
+        measured_arts (list[float]): 
+            A list of measured ART values corresponding to the client counts.
+        figure_name (str | None, optional): 
+            The name of the output image file. 
+            - If `None`, the figure is saved as "./data/art.png".
+            - If provided, the figure is saved as "./data/art_locust.png".
+
+    Notes:
+        - The x-axis represents the number of clients, starting from `MIN_CLIENT_COUNT` to `client_count`.
+        - Two bar groups are plotted:
+            - Theoretical ARTs (in blue).
+            - Measured ARTs (in orange).
+        - The function saves the figure instead of displaying it.
+
+    Example Usage:
+        theoretical = [0.5, 0.7, 1.0, 1.4, 2.0]
+        measured = [0.6, 0.8, 1.2, 1.5, 2.1]
+        plot_art(10, theoretical, measured, figure_name="locust.png")
+    """
 
     bar_width = 0.35
-    x = np.arange(INIT_NUMBER_OF_CLIENTS, N+1)
+    x = np.arange(MIN_CLIENT_COUNT, client_count + 1)
 
     plt.figure(figsize=(10, 6))
     plt.bar(x - bar_width / 2, theoretical_arts, bar_width,
             label='Theoretical', color='skyblue', edgecolor='black', alpha=1)
-    plt.bar(x + bar_width / 2, measured_arts, bar_width, label='Measured', color='orange', edgecolor='black', alpha=1)
+    plt.bar(x + bar_width / 2, measured_arts, bar_width,
+            label='Measured', color='orange', edgecolor='black', alpha=1)
     plt.title("Average response time: theoretical vs measured")
     plt.xlabel("Number of clients")
     plt.ylabel("Average response time")
     plt.legend()
     # plt.show()
-    plt.savefig("./data/art.png")
+    if figure_name is None:
+        plt.savefig("./data/art.png")
+    else:
+        plt.savefig("./data/art_locust.png")
     plt.close()
-
-
-if __name__ == '__main__':
-    Q = rate_matrix(5, 2, 8)
-    prob = compute_forward_equations(Q, 0, 30)
-    print(prob)
