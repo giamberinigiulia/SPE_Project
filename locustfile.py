@@ -10,7 +10,7 @@ class User(HttpUser):
         self.client.get("/")
 
     def wait_time(self):
-        return random.exponential(1/8)  # change it!
+        return random.exponential(1/1)  # change it!
 
 
 @events.request.add_listener

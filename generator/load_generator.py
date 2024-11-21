@@ -17,7 +17,6 @@ class LoadGenerator:
 
         random.seed(10)
 
-        # TODO: remove this operation if it's done in the main both for the generator and the server
         if os.path.exists(self.csv_filename):
             os.remove(self.csv_filename)
 
@@ -42,7 +41,7 @@ class LoadGenerator:
 
         self.__write_csv(response_times)
 
-    def __write_csv(self, response_times: list[float]) -> None:
+    def __write_csv(self, response_times: list) -> None:
         with open(self.csv_filename, 'a', newline='') as file:
             wr = writer(file)
             wr.writerow(response_times)

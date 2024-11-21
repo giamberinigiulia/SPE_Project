@@ -1,6 +1,7 @@
 import os
 import subprocess
 import csv
+
 import generator.test_generator as tg
 
 
@@ -35,10 +36,11 @@ def main():
     theoretical_arts = []
 
     for users in user_counts:
-        theoretical_arts.append(tg.compute_art(N=users, arrival_rate=8, service_rate=10, probabilities_forward=tg.compute_forward_equations(
-            Q=tg.rate_matrix(num_clients=users, arrival_rate=8, service_rate=10), initial_state=0, t_max=20)))
-        
-    tg.plot_art(10, theoretical_arts, avg_response_times)
+        theoretical_arts.append(tg.compute_art(
+            client_count=users, arrival_rate=1, service_rate=10, client_request_time=20))
+    
+    tg.plot_art(10, theoretical_arts, avg_response_times, "locust")
+
 
 if __name__ == "__main__":
     main()

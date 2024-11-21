@@ -3,9 +3,10 @@ import os
 import shutil
 import time
 import datetime
+from multiprocessing import Process
+
 import json_config_manager as manager
 import generator.test_generator as tg
-from multiprocessing import Process
 from server.flask_server import FlaskServer
 
 FOLDER_PATH = "./data"
@@ -20,7 +21,7 @@ def start_server(mu_value, file_path, images_path):
 
 # TODO: add parameter to specify the folder for the CSV
 def start_load_generator(client_count, arrival_rate, service_rate, max_time):
-   # Test for the average response time 
+   # Test for the average response time
     theoretical_arts, measured_arts = tg.get_average_response_times(
         client_count, arrival_rate, service_rate, max_time)
     tg.plot_art(client_count, theoretical_arts, measured_arts)
@@ -42,7 +43,7 @@ if __name__ == '__main__':
                                   help='Parameter mu (e.g., rate of arrival)')
     arguments_parser.add_argument('-l', type=float, required=True,
                                   help='Parameter lambda (e.g., service rate)')
-    arguments_parser.add_argument('-t', type=float, required=True,
+    arguments_parser.add_argument('-t', type=int, required=True,
                                   help='Maximum time to run the simulation')
     arguments_parser.add_argument('-n', type=int, required=True,
                                   help='Number of clients to simulate')
