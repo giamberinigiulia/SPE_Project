@@ -7,10 +7,10 @@ from scipy.integrate import solve_ivp
 from generator.load_generator import LoadGenerator
 
 
-MIN_CLIENT_COUNT = 2
+MIN_CLIENT_COUNT = 10
 
 
-def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float]]:
+def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float], list[float]]:
     """
     Computes theoretical and measured average response times (ARTs) for a range of client counts.
 
@@ -27,18 +27,22 @@ def get_average_response_times(max_client_count: int, arrival_rate: float, servi
     """
 
     theoretical_arts = []
+    theoretical_utils = []
     measured_arts = []
 
     for client_count in range(MIN_CLIENT_COUNT, max_client_count+1):
-        theoretical_arts.append(compute_art(client_count, arrival_rate,
-                                service_rate, client_request_time))
+        theoretical_art, theoretical_util = compute_art(client_count, arrival_rate,
+                                service_rate, client_request_time)
+        theoretical_arts.append(theoretical_art)
+        theoretical_utils.append(theoretical_util)
+        
         print(f"[DEBUG] Computed theoretical ART for {client_count} clients.")
 
         measured_arts.append(compute_average_response_time(LoadGenerator(
             client_count, arrival_rate, "http://127.0.0.1:5000", client_request_time, "./data")))
         print(f"[DEBUG] Computed measured ART for {client_count} clients.")
 
-    return theoretical_arts, measured_arts
+    return theoretical_arts, measured_arts, theoretical_utils
 
 
 def compute_average_response_time(load_generator: LoadGenerator) -> float:
@@ -101,7 +105,7 @@ def compute_forward_equations(Q: numpy.ndarray, initial_state: int, t_max: int) 
     return probabilities_forward
 
 
-def compute_art(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> float:
+def compute_art(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[float, float]:
     """
     Computes the theoretical Average Response Time (ART) for a system based on queueing theory.
 
@@ -126,14 +130,15 @@ def compute_art(client_count: int, arrival_rate: float, service_rate: float, cli
     probabilities_forward = compute_forward_equations(
         Q=Q, initial_state=0, t_max=client_request_time)
     # pi_N is the state where I have all the clients waiting to be served
-    rtt = client_count/(service_rate*(1-probabilities_forward[-1, 0]))
+    util = 1 - probabilities_forward[-1, 0]
+    rtt = client_count/(service_rate*(util))
     art = rtt - 1/arrival_rate
-    return art
+    return art, util
 
 
-def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: list[float], figure_name: str | None = None) -> None:
+def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: list[float], theoretical_utils: list[float], figure_name: str | None = None) -> None:
     """
-    Generates a bar chart comparing theoretical and measured average response times (ARTs).
+    Generates a bar chart comparing theoretical and measured average response times (ARTs) and a line chart for theoretical utils.
 
     Parameters:
         client_count (int): 
@@ -142,39 +147,53 @@ def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: li
             A list of theoretical ART values corresponding to the client counts.
         measured_arts (list[float]): 
             A list of measured ART values corresponding to the client counts.
+        theoretical_utils (list[float]):
+            A list of theoretical utilization values corresponding to the client counts.
         figure_name (str | None, optional): 
             The name of the output image file. 
             - If `None`, the figure is saved as "./data/art.png".
-            - If provided, the figure is saved as "./data/art_locust.png".
+            - If provided, the figure is saved as "./data/{figure_name}".
+        MIN_CLIENT_COUNT (int, optional):
+            The minimum number of clients. Default is 1.
 
     Notes:
         - The x-axis represents the number of clients, starting from `MIN_CLIENT_COUNT` to `client_count`.
         - Two bar groups are plotted:
             - Theoretical ARTs (in blue).
             - Measured ARTs (in orange).
+        - A line plot is added for theoretical utils (in green).
         - The function saves the figure instead of displaying it.
 
     Example Usage:
         theoretical = [0.5, 0.7, 1.0, 1.4, 2.0]
         measured = [0.6, 0.8, 1.2, 1.5, 2.1]
-        plot_art(10, theoretical, measured, figure_name="locust.png")
+        utils = [0.5, 0.6, 0.7, 0.8, 0.9]
+        plot_art(10, theoretical, measured, utils, figure_name="locust.png")
     """
 
+  
     bar_width = 0.35
     x = np.arange(MIN_CLIENT_COUNT, client_count + 1)
+    # print(x, theoretical_arts, measured_arts, theoretical_utils)
+    fig, ax1 = plt.subplots(figsize=(10, 6))
 
-    plt.figure(figsize=(10, 6))
-    plt.bar(x - bar_width / 2, theoretical_arts, bar_width,
-            label='Theoretical', color='skyblue', edgecolor='black', alpha=1)
-    plt.bar(x + bar_width / 2, measured_arts, bar_width,
-            label='Measured', color='orange', edgecolor='black', alpha=1)
-    plt.title("Average response time: theoretical vs measured")
-    plt.xlabel("Number of clients")
-    plt.ylabel("Average response time")
-    plt.legend()
-    # plt.show()
+    ax1.bar(x - bar_width / 2, theoretical_arts, bar_width,
+            label='Theoretical ARTs', color='skyblue', edgecolor='black', alpha=1)
+    ax1.bar(x + bar_width / 2, measured_arts, bar_width,
+            label='Measured ARTs', color='orange', edgecolor='black', alpha=1)
+    ax1.set_xlabel("Number of clients")
+    ax1.set_ylabel("Average response time")
+    ax1.set_title("Average response time and utilization: theoretical vs measured")
+    ax1.legend(loc='upper left')
+
+    ax2 = ax1.twinx()
+    ax2.plot(x, theoretical_utils, label='Theoretical Utils', color='green', marker='o')
+    ax2.set_ylabel("Utilization")
+    ax2.legend(loc='upper right')
+
+    fig.tight_layout()
+
     if figure_name is None:
         plt.savefig("./data/art.png")
     else:
-        plt.savefig("./data/art_locust.png")
-    plt.close()
+        plt.savefig(f"./data/{figure_name}")

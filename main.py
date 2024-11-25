@@ -85,9 +85,9 @@ if __name__ == '__main__':
     server.start()
     time.sleep(2)
 
-    client = Process(target=start_load_generator, args=[
-                     client_count, lambda_rate, mu_rate, max_time])
-    client.start()
+    # client = Process(target=start_load_generator, args=[
+    #                  client_count, lambda_rate, mu_rate, max_time])
+    # client.start()
 
-    client.join()
+    # client.join()
     server.join()
