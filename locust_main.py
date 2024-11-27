@@ -23,8 +23,8 @@ def main():
         os.remove("data/avg_response_time.csv")
 
     # user_counts = range(2, 11)
-    user_counts = range(10, 21)
-    for users in user_counts:
+    client_counts = range(18, 21)
+    for users in client_counts:
         run_locust_test(users)
 
     avg_response_times = []
@@ -36,14 +36,13 @@ def main():
     theoretical_arts = []
     theoretical_utils = []
 
-    for users in user_counts:
-        theoretical_art, theoretical_util = tg.compute_art(users, 1,
-                                                           10, 20)
+    for users in client_counts:
+        theoretical_art, theoretical_util = tg.compute_art(users, 1,10, 20)
         theoretical_arts.append(theoretical_art)
         theoretical_utils.append(theoretical_util)
         print(f"[DEBUG] Computed theoretical util {theoretical_util} for {users} clients.")
-
-    tg.plot_art(20, theoretical_arts, avg_response_times, theoretical_utils, "locust")
+    
+    tg.plot_art(client_counts, theoretical_arts, avg_response_times, theoretical_utils, "locust")
 
 
 if __name__ == "__main__":

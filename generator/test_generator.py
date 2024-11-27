@@ -7,10 +7,8 @@ from scipy.integrate import solve_ivp
 from generator.load_generator import LoadGenerator
 
 
-MIN_CLIENT_COUNT = 10
 
-
-def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float], list[float]]:
+def get_average_response_times(client_counts: range, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float], list[float]]:
     """
     Computes theoretical and measured average response times (ARTs) for a range of client counts.
 
@@ -30,7 +28,7 @@ def get_average_response_times(max_client_count: int, arrival_rate: float, servi
     theoretical_utils = []
     measured_arts = []
 
-    for client_count in range(MIN_CLIENT_COUNT, max_client_count+1):
+    for client_count in client_counts:
         theoretical_art, theoretical_util = compute_art(client_count, arrival_rate,
                                 service_rate, client_request_time)
         theoretical_arts.append(theoretical_art)
@@ -136,7 +134,7 @@ def compute_art(client_count: int, arrival_rate: float, service_rate: float, cli
     return art, util
 
 
-def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: list[float], theoretical_utils: list[float], figure_name: str | None = None) -> None:
+def plot_art(client_counts: range, theoretical_arts: list[float], measured_arts: list[float], theoretical_utils: list[float], figure_name: str | None = None) -> None:
     """
     Generates a bar chart comparing theoretical and measured average response times (ARTs) and a line chart for theoretical utils.
 
@@ -173,7 +171,8 @@ def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: li
 
   
     bar_width = 0.35
-    x = np.arange(MIN_CLIENT_COUNT, client_count + 1)
+    x = np.arange(client_counts.start, client_counts.stop)
+    print(x)
     # print(x, theoretical_arts, measured_arts, theoretical_utils)
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
