@@ -29,7 +29,7 @@ def get_average_response_times(client_counts: range, arrival_rate: float, servic
     measured_arts = []
 
     for client_count in client_counts:
-        theoretical_art, theoretical_util = compute_art(client_count, arrival_rate,
+        theoretical_art, theoretical_util = compute_theoretical_metrics(client_count, arrival_rate,
                                 service_rate, client_request_time)
         theoretical_arts.append(theoretical_art)
         theoretical_utils.append(theoretical_util)
@@ -44,26 +44,23 @@ def get_average_response_times(client_counts: range, arrival_rate: float, servic
 
 
 def compute_average_response_time(load_generator: LoadGenerator) -> float:
-    load_generator.generate_load()
-    return compute_total_response_time(load_generator.csv_filename)
-
-
-def compute_total_response_time(csv_filename: str) -> float:
     total_response_time = 0.0
     number_of_responses = 0
+    
+    load_generator.generate_load()
 
-    with open(csv_filename, 'r', newline='') as response_time_csv:
-        system_response_times = csv.reader(response_time_csv, delimiter=',')
+    with open(load_generator.csv_filename, 'r', newline='') as response_time_csv:
+        response_time_reader = csv.reader(response_time_csv, delimiter=',')
 
-        for client_response_times in system_response_times:
-            for response_time in client_response_times:
-                total_response_time += float(response_time)
+        for response_times in response_time_reader:
+            for time in response_times:
+                total_response_time += float(time)
                 number_of_responses += 1
 
     return total_response_time / number_of_responses
 
 
-def rate_matrix(client_count: int, arrival_rate: float, service_rate: float) -> numpy.ndarray:
+def generate_rate_matrix(client_count: int, arrival_rate: float, service_rate: float) -> numpy.ndarray:
     N = client_count
     Q = np.zeros((N + 1, N + 1))
 
@@ -96,84 +93,30 @@ def forward_equations(Q: numpy.ndarray, t_max: int, initial_state_probs: numpy.n
     return solution.y.T
 
 
-def compute_forward_equations(Q: numpy.ndarray, initial_state: int, t_max: int) -> numpy.ndarray:
-    initial_state_probs = np.zeros(Q.shape[0])
+def compute_forward_equations(rate_matrix: numpy.ndarray, initial_state: int, t_max: int) -> numpy.ndarray:
+    initial_state_probs = np.zeros(rate_matrix.shape[0])
     initial_state_probs[initial_state] = 1.0  # Start with 100% probability in the initial state
-    probabilities_forward = forward_equations(Q, t_max, initial_state_probs)
+    probabilities_forward = forward_equations(rate_matrix, t_max, initial_state_probs)
     return probabilities_forward
 
 
-def compute_art(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[float, float]:
-    """
-    Computes the theoretical Average Response Time (ART) for a system based on queueing theory.
+def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[float, float]:
 
-    Parameters:
-        client_count (int): The number of clients interacting with the server.
-        arrival_rate (float): The rate (in requests per second) at which clients generate requests.
-        service_rate (float): The rate (in requests per second) at which the server processes requests.
-        client_request_time (int): The time (in seconds) in which the client can send requests.
-
-    Returns:
-        float: 
-            Theoretical Average Response Time (ART) in seconds.
-
-    Notes:
-        - The ART is derived from queueing theory and considers the time a client spends waiting in the queue 
-          and being served.
-        - This function uses the forward equations method to compute the steady-state probabilities 
-          required for ART estimation.
-    """
-
-    Q = rate_matrix(client_count, arrival_rate, service_rate)
-    probabilities_forward = compute_forward_equations(
-        Q=Q, initial_state=0, t_max=client_request_time)
+    rate_matrix = generate_rate_matrix(client_count, arrival_rate, service_rate)
+    state_probabilities = compute_forward_equations(
+        rate_matrix=rate_matrix, initial_state=0, t_max=client_request_time)
     # pi_N is the state where I have all the clients waiting to be served
-    util = 1 - probabilities_forward[-1, 0]
-    rtt = client_count/(service_rate*(util))
-    art = rtt - 1/arrival_rate
-    return art, util
+    utilization = 1 - state_probabilities[-1, 0]
+    
+    round_trip_time = client_count/(service_rate*(utilization))
+    average_response_time = round_trip_time - 1/arrival_rate
+    return average_response_time, utilization
 
 
-def plot_art(client_counts: range, theoretical_arts: list[float], measured_arts: list[float], theoretical_utils: list[float], figure_name: str | None = None) -> None:
-    """
-    Generates a bar chart comparing theoretical and measured average response times (ARTs) and a line chart for theoretical utils.
-
-    Parameters:
-        client_count (int): 
-            The maximum number of clients simulated in the ART computations.
-        theoretical_arts (list[float]): 
-            A list of theoretical ART values corresponding to the client counts.
-        measured_arts (list[float]): 
-            A list of measured ART values corresponding to the client counts.
-        theoretical_utils (list[float]):
-            A list of theoretical utilization values corresponding to the client counts.
-        figure_name (str | None, optional): 
-            The name of the output image file. 
-            - If `None`, the figure is saved as "./data/art.png".
-            - If provided, the figure is saved as "./data/{figure_name}".
-        MIN_CLIENT_COUNT (int, optional):
-            The minimum number of clients. Default is 1.
-
-    Notes:
-        - The x-axis represents the number of clients, starting from `MIN_CLIENT_COUNT` to `client_count`.
-        - Two bar groups are plotted:
-            - Theoretical ARTs (in blue).
-            - Measured ARTs (in orange).
-        - A line plot is added for theoretical utils (in green).
-        - The function saves the figure instead of displaying it.
-
-    Example Usage:
-        theoretical = [0.5, 0.7, 1.0, 1.4, 2.0]
-        measured = [0.6, 0.8, 1.2, 1.5, 2.1]
-        utils = [0.5, 0.6, 0.7, 0.8, 0.9]
-        plot_art(10, theoretical, measured, utils, figure_name="locust.png")
-    """
-
+def save_metrics_plot(client_counts: range, theoretical_arts: list[float], measured_arts: list[float], theoretical_utils: list[float], figure_name: str) -> None:
   
     bar_width = 0.35
     x = np.arange(client_counts.start, client_counts.stop)
-    print(x)
-    # print(x, theoretical_arts, measured_arts, theoretical_utils)
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
     ax1.bar(x - bar_width / 2, theoretical_arts, bar_width,
@@ -192,7 +135,4 @@ def plot_art(client_counts: range, theoretical_arts: list[float], measured_arts:
 
     fig.tight_layout()
 
-    if figure_name is None:
-        plt.savefig("./data/art.png")
-    else:
-        plt.savefig(f"./data/{figure_name}")
+    plt.savefig(f"./data/{figure_name}.png")

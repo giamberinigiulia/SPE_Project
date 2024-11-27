@@ -10,8 +10,8 @@ def run_locust_test(users):
     command = [
         "locust", "--headless",
         "-u", str(users),
-        "-r", str(users),  # Spawn rate matches the user count
-        "-t", "20s",  # Test duration of 20 seconds
+        "-r", str(users),  # Users' spawn rate
+        "-t", "20s",  # Test duration
         "-H", "http://127.0.0.1:5000"
     ]
 
@@ -22,7 +22,6 @@ def main():
     if os.path.exists("data/avg_response_time.csv"):
         os.remove("data/avg_response_time.csv")
 
-    # user_counts = range(2, 11)
     client_counts = range(18, 21)
     for users in client_counts:
         run_locust_test(users)
@@ -37,12 +36,12 @@ def main():
     theoretical_utils = []
 
     for users in client_counts:
-        theoretical_art, theoretical_util = tg.compute_art(users, 1,10, 20)
+        theoretical_art, theoretical_util = tg.compute_theoretical_metrics(users, 1,10, 20)
         theoretical_arts.append(theoretical_art)
         theoretical_utils.append(theoretical_util)
         print(f"[DEBUG] Computed theoretical util {theoretical_util} for {users} clients.")
     
-    tg.plot_art(client_counts, theoretical_arts, avg_response_times, theoretical_utils, "locust")
+    tg.save_metrics_plot(client_counts, theoretical_arts, avg_response_times, theoretical_utils, "locust")
 
 
 if __name__ == "__main__":
