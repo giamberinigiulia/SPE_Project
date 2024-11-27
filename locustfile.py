@@ -2,6 +2,7 @@ from csv import writer
 from locust import HttpUser, task, events
 from numpy import random
 
+MILLISECONDS_PER_SECOND = 1000
 
 class User(HttpUser):
 
@@ -23,7 +24,7 @@ response_times = []
 @events.quitting.add_listener
 def on_locust_quit(environment, **kwargs):
     if response_times:
-        avg_response_time = [(sum(response_times) / len(response_times))/1000]
+        avg_response_time = [(sum(response_times) / len(response_times))/MILLISECONDS_PER_SECOND]
         write_csv(avg_response_time)
 
 

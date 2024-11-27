@@ -19,29 +19,30 @@ def run_locust_test(users):
 
 
 def main():
+    theoretical_arts = []
+    theoretical_utils = []
+    avg_response_times = []
+
     if os.path.exists("data/avg_response_time.csv"):
         os.remove("data/avg_response_time.csv")
 
-    client_counts = range(18, 21)
-    for users in client_counts:
+    user_count_range = range(18, 21)
+    for users in user_count_range:
         run_locust_test(users)
 
-    avg_response_times = []
-    with open("data/avg_response_time.csv", 'r', newline='') as response_time_csv:
-        rows = csv.reader(response_time_csv)
-        for row in rows:
-            avg_response_times.append(float(row[0]))
-
-    theoretical_arts = []
-    theoretical_utils = []
-
-    for users in client_counts:
-        theoretical_art, theoretical_util = tg.compute_theoretical_metrics(users, 1,10, 20)
+    for users in user_count_range:
+        theoretical_art, theoretical_util = tg.compute_theoretical_metrics(users, 1, 10, 20)
         theoretical_arts.append(theoretical_art)
         theoretical_utils.append(theoretical_util)
         print(f"[DEBUG] Computed theoretical util {theoretical_util} for {users} clients.")
-    
-    tg.save_metrics_plot(client_counts, theoretical_arts, avg_response_times, theoretical_utils, "locust")
+
+    with open("data/avg_response_time.csv", 'r', newline='') as response_time_csv:
+        csv_reader = csv.reader(response_time_csv)
+        for avg_response_time in csv_reader:
+            avg_response_times.append(float(avg_response_time[0]))
+
+    tg.save_metrics_plot(user_count_range, theoretical_arts,
+                         theoretical_utils, avg_response_times,  "locust")
 
 
 if __name__ == "__main__":

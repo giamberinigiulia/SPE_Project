@@ -6,38 +6,26 @@ from scipy.integrate import solve_ivp
 
 from generator.load_generator import LoadGenerator
 
+FOLDER_PATH = "./data"
+URL = "http://127.0.0.1:5000"
 
 
-def get_average_response_times(client_counts: range, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float], list[float]]:
-    """
-    Computes theoretical and measured average response times (ARTs) for a range of client counts.
-
-    Parameters:
-        max_client_count (int): The maximum number of clients to simulate.
-        arrival_rate (float): The rate (in requests per second) at which clients generate requests.
-        service_rate (float): The rate (in requests per second) at which the server processes requests.
-        client_request_time (int): The time (in seconds) in which the client can send requests.
-
-    Returns:
-        tuple[list[float], list[float]]: 
-            - A list of theoretical average response times.
-            - A list of measured average response times.
-    """
+def compute_system_metrics(client_count_range: range, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float], list[float]]:
 
     theoretical_arts = []
     theoretical_utils = []
     measured_arts = []
 
-    for client_count in client_counts:
+    for client_count in client_count_range:
         theoretical_art, theoretical_util = compute_theoretical_metrics(client_count, arrival_rate,
-                                service_rate, client_request_time)
+                                                                        service_rate, client_request_time)
         theoretical_arts.append(theoretical_art)
         theoretical_utils.append(theoretical_util)
-        
+
         print(f"[DEBUG] Computed theoretical ART for {client_count} clients.")
 
         measured_arts.append(compute_average_response_time(LoadGenerator(
-            client_count, arrival_rate, "http://127.0.0.1:5000", client_request_time, "./data")))
+            client_count, arrival_rate, URL, client_request_time, FOLDER_PATH)))
         print(f"[DEBUG] Computed measured ART for {client_count} clients.")
 
     return theoretical_arts, measured_arts, theoretical_utils
@@ -46,13 +34,13 @@ def get_average_response_times(client_counts: range, arrival_rate: float, servic
 def compute_average_response_time(load_generator: LoadGenerator) -> float:
     total_response_time = 0.0
     number_of_responses = 0
-    
+
     load_generator.generate_load()
 
     with open(load_generator.csv_filename, 'r', newline='') as response_time_csv:
-        response_time_reader = csv.reader(response_time_csv, delimiter=',')
+        csv_reader = csv.reader(response_time_csv, delimiter=',')
 
-        for response_times in response_time_reader:
+        for response_times in csv_reader:
             for time in response_times:
                 total_response_time += float(time)
                 number_of_responses += 1
@@ -107,16 +95,16 @@ def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_
         rate_matrix=rate_matrix, initial_state=0, t_max=client_request_time)
     # pi_N is the state where I have all the clients waiting to be served
     utilization = 1 - state_probabilities[-1, 0]
-    
+
     round_trip_time = client_count/(service_rate*(utilization))
     average_response_time = round_trip_time - 1/arrival_rate
     return average_response_time, utilization
 
 
-def save_metrics_plot(client_counts: range, theoretical_arts: list[float], measured_arts: list[float], theoretical_utils: list[float], figure_name: str) -> None:
-  
+def save_metrics_plot(client_count_range: range, theoretical_arts: list[float], theoretical_utils: list[float], measured_arts: list[float], figure_name: str) -> None:
+
     bar_width = 0.35
-    x = np.arange(client_counts.start, client_counts.stop)
+    x = np.arange(client_count_range.start, client_count_range.stop)
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
     ax1.bar(x - bar_width / 2, theoretical_arts, bar_width,
