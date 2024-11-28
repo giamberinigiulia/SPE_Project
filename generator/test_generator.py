@@ -11,7 +11,7 @@ from generator.load_generator import LoadGenerator
 MIN_CLIENT_COUNT = 2
 
 
-def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float], list[float]]:
+def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int, data_path: str) -> tuple[list[float], list[float], list[float]]:
     """
     Computes theoretical and measured average response times (ARTs) for a range of client counts.
 
@@ -40,7 +40,7 @@ def get_average_response_times(max_client_count: int, arrival_rate: float, servi
         print(f"[DEBUG] Computed theoretical ART for {client_count} clients.")
 
         measured_arts.append(compute_average_response_time(LoadGenerator(
-            client_count, arrival_rate, "http://127.0.0.1:5000", client_request_time, "./data")))
+            client_count, arrival_rate, "http://127.0.0.1:5000", client_request_time, data_path)))
         print(f"[DEBUG] Computed measured ART for {client_count} clients.")
 
     # Ending server after the simulation completes
@@ -150,7 +150,7 @@ def compute_art(client_count: int, arrival_rate: float, service_rate: float, cli
     return art, util
 
 
-def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: list[float], theoretical_utils: list[float], figure_name: str | None = None) -> None:
+def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: list[float], theoretical_utils: list[float], data_path: str | None = None) -> None:
     """
     Generates a bar chart comparing theoretical and measured average response times (ARTs) and a line chart for theoretical utils.
 
@@ -207,7 +207,7 @@ def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: li
 
     fig.tight_layout()
 
-    if figure_name is None:
+    if data_path is None:
         plt.savefig("./data/art.png")
     else:
-        plt.savefig(f"./data/{figure_name}")
+        plt.savefig(f"{data_path}/art.png")

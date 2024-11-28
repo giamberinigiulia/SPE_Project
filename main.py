@@ -26,11 +26,11 @@ def start_load_generator(client_number, enter_rate, max_time, data_folder_csv, t
     lg.generate_load()
 
 # TODO: add parameter to specify the folder for the CSV
-def start_load_generator_test(client_count, arrival_rate, service_rate, max_time, data_folder_csv):
+def start_load_generator_test(client_count, arrival_rate, service_rate, max_time, data_folder_csv, data_folder_images):
    # Test for the average response time
     theoretical_arts, measured_arts, theoretical_utils = tg.get_average_response_times(
-        client_count, arrival_rate, service_rate, max_time)
-    tg.plot_art(client_count, theoretical_arts, measured_arts, theoretical_utils, figure_name=data_folder_csv)
+        client_count, arrival_rate, service_rate, max_time, data_path=data_folder_csv)
+    tg.plot_art(client_count, theoretical_arts, measured_arts, theoretical_utils, data_path=data_folder_images)
 
 if __name__ == '__main__':
     # Note: the server should be started before running this script, and it should be accessible at http://127.0.0.1:5000
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     if args.mode == "v" or args.mode == "j":
         client = Process(target=start_load_generator, args=[number_clients, lambda_rate, max_time, data_folder_csv])
     elif args.mode == "vt" or args.mode == "jt":
-        client = Process(target=start_load_generator_test, args=[number_clients, lambda_rate, mu_rate, max_time, data_folder_csv])
+        client = Process(target=start_load_generator_test, args=[number_clients, lambda_rate, mu_rate, max_time, data_folder_csv, data_folder_images])
     client.start()
 
     client.join()
