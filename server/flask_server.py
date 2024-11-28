@@ -54,20 +54,6 @@ class FlaskServer:
             delay_analyzer.log_delay_to_csv(mu, delay)
             return jsonify({"message": "Task completed", "duration": delay})
 
-        @self.app.route('/plot/', methods=['GET'])
-        def plot():
-            # Evaluate the mean mu observed in the csv and generate the empirical distribution plot
-            mean_delay, n = delay_analyzer.mean_mu_observed(mu)
-            values_observed = delay_analyzer.empirical_distribution(mu)
-            plot_generator.generate_exponential_plot(mu, mean_delay, values_observed, n)
-            return send_file(self.app.config['images_path'], mimetype='image/png')
-
-        @self.app.route('/reset', methods=['GET'])
-        def reset():
-            # delete the csv file related to this server (launched with that mu)
-            if os.path.isfile(self.app.config['csv_path']):
-                os.remove(self.app.config['csv_path'])
-            return jsonify({"message": "Reset completed"})
 
     def run(self):
         # Start the Flask application without multithreading
