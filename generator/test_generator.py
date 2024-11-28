@@ -2,12 +2,13 @@ import csv
 import numpy
 import numpy as np
 import matplotlib.pyplot as plt
+import requests
 from scipy.integrate import solve_ivp
 
 from generator.load_generator import LoadGenerator
 
 
-MIN_CLIENT_COUNT = 10
+MIN_CLIENT_COUNT = 2
 
 
 def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float], list[float]]:
@@ -42,6 +43,19 @@ def get_average_response_times(max_client_count: int, arrival_rate: float, servi
             client_count, arrival_rate, "http://127.0.0.1:5000", client_request_time, "./data")))
         print(f"[DEBUG] Computed measured ART for {client_count} clients.")
 
+    # Ending server after the simulation completes
+    try:
+        # Send a GET request to the /end route
+        response = requests.get("http://127.0.0.1:5000/end")  # Ensure the port is correct (default is 5000)
+        
+        if response.status_code == 200:
+            print(f"[INFO] Received confirmation from ending server.")
+        else:
+            print(f"[INFO] Failed to get confirmation from ending server. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        # Handle any error during the request (e.g., server not running)
+        print(f"[ERROR] Request failed: {e}")
+        
     return theoretical_arts, measured_arts, theoretical_utils
 
 

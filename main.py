@@ -22,9 +22,9 @@ def start_server(mu_value, file_path, images_path):
 # TODO: add parameter to specify the folder for the CSV
 def start_load_generator(client_count, arrival_rate, service_rate, max_time):
    # Test for the average response time
-    theoretical_arts, measured_arts = tg.get_average_response_times(
+    theoretical_arts, measured_arts, theoretical_utils = tg.get_average_response_times(
         client_count, arrival_rate, service_rate, max_time)
-    tg.plot_art(client_count, theoretical_arts, measured_arts)
+    tg.plot_art(client_count, theoretical_arts, measured_arts, theoretical_utils)
 
 
 if __name__ == '__main__':
@@ -85,9 +85,9 @@ if __name__ == '__main__':
     server.start()
     time.sleep(2)
 
-    # client = Process(target=start_load_generator, args=[
-    #                  client_count, lambda_rate, mu_rate, max_time])
-    # client.start()
+    client = Process(target=start_load_generator, args=[
+                  client_count, lambda_rate, mu_rate, max_time])
+    client.start()
 
-    # client.join()
+    client.join()
     server.join()

@@ -1,5 +1,6 @@
 import sys
-from flask import Flask, jsonify, send_file  # For creating Flask app and handling responses
+import time
+from flask import Flask, jsonify, request, send_file  # For creating Flask app and handling responses
 import os                                    # For file operations (deleting files)
 import random                                # For setting random seed
 import numpy as np
@@ -15,7 +16,15 @@ class FlaskServer:
         A Server class that initializes a Flask application and sets up routes.
     '''
 
+    # attributes for logging the server inactivity state and evaluate the overall inactivity time
+    server_starting_time = 0 # initialized before launching the server
+    server_active_time = 0 # counter time for activity periods
+
+
     def __init__(self, mu_value: float = 10.0, file_path: str = "./data/csv", image_path: str = "./data/images"):
+        # Initialize the server starting time
+        self.server_starting_time = time.time()
+        
         # Initialize the Flask application within the class
         self.app = Flask(__name__)
 
@@ -45,6 +54,7 @@ class FlaskServer:
 
         @self.app.route('/', methods=['GET'])
         def process_task():
+            start_processing = time.time() # update the inactive time by counting from the last active period
             random.seed(42)
             # Sample the delay time and perform a CPU bound operation, then log the delay in the csv file
             delay = np.random.exponential(1.0 / mu)
@@ -52,7 +62,24 @@ class FlaskServer:
             # end_time = time.time()
             # delay_analyzer.log_delay_to_csv(mu, end_time-start_time)
             delay_analyzer.log_delay_to_csv(mu, delay)
+            self.server_active_time += time.time() - start_processing
             return jsonify({"message": "Task completed", "duration": delay})
+
+        @self.app.route('/end', methods=['GET'])
+        def end_server():
+            # Log the server shutdown time
+            server_shutdown_time = time.time()
+            # Print the server duration time 
+            print(f"Server started at {self.server_starting_time} and ended at {server_shutdown_time}")
+            print(f"Server duration: {server_shutdown_time - self.server_starting_time} seconds")
+            print(f"Server active time: {self.server_active_time} seconds")
+            print(f"Server activity utils: {self.server_active_time * 100 / (server_shutdown_time - self.server_starting_time)} %")
+            # Return JSON response with calculated metrics
+            return jsonify({
+                "activity_period": self.server_active_time,
+                "server_up_time": server_shutdown_time - self.server_starting_time,
+                "measured_utils_percentage": (self.server_active_time / (server_shutdown_time - self.server_starting_time)) * 100
+                })
 
 
     def run(self):
