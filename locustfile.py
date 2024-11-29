@@ -1,6 +1,6 @@
 from csv import writer
 from locust import HttpUser, task, events
-from numpy import random, mean, std, sqrt
+from numpy import random, mean
 
 MILLISECONDS_PER_SECOND = 1000
 
@@ -25,21 +25,11 @@ response_times = []
 def on_locust_quit(environment, **kwargs):
     if response_times:
         avg_response_time = mean(response_times) / MILLISECONDS_PER_SECOND
-        confidence_interval = calculate_confidence_interval(response_times)
-        write_csv(avg_response_time, confidence_interval)
+        write_csv(avg_response_time)
 
 
-def calculate_confidence_interval(data):
-    n = len(data)
-    mean_val = mean(data)
-    std_err = std(data) / sqrt(n)
-    z_score = 1.96  # Approximate z-score for 95% confidence level
-    h = std_err * z_score
-    return (mean_val - h) / MILLISECONDS_PER_SECOND, (mean_val + h) / MILLISECONDS_PER_SECOND
-
-
-def write_csv(avg_response_time: float, confidence_interval: tuple[float, float]) -> None:
+def write_csv(avg_response_time: float) -> None:
     with open("data/metrics.csv", 'a', newline='') as file:
         wr = writer(file)
-        wr.writerow([avg_response_time, confidence_interval[0], confidence_interval[1]])
+        wr.writerow([avg_response_time])
         file.close()

@@ -101,7 +101,7 @@ def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_
     return average_response_time, utilization
 
 
-def save_metrics_plot(client_count_range: range, theoretical_arts: list[float], theoretical_utils: list[float], measured_arts: list[float], figure_name: str) -> None:
+def save_metrics_plot(client_count_range: range, theoretical_arts: list[float], theoretical_utils: list[float], measured_arts: list[float], ci_lower: list[float], ci_upper: list[float], figure_name: str) -> None:
 
     bar_width = 0.35
     x = np.arange(client_count_range.start, client_count_range.stop)
@@ -111,6 +111,13 @@ def save_metrics_plot(client_count_range: range, theoretical_arts: list[float], 
             label='Theoretical ARTs', color='skyblue', edgecolor='black', alpha=1)
     ax1.bar(x + bar_width / 2, measured_arts, bar_width,
             label='Measured ARTs', color='orange', edgecolor='black', alpha=1)
+    
+    # Calculate error bars
+    error = [theoretical_arts[i] - ci_lower[i] for i in range(len(theoretical_arts))]
+    
+    # Add error bars for confidence intervals
+    ax1.errorbar(x - bar_width / 2, theoretical_arts, yerr=[error, [ci_upper[i] - theoretical_arts[i] for i in range(len(theoretical_arts))]], fmt='none', ecolor='black', capsize=5, label='Confidence Interval')
+
     ax1.set_xlabel("Number of clients")
     ax1.set_ylabel("Average response time")
     ax1.set_title("Average response time and utilization: theoretical vs measured")
