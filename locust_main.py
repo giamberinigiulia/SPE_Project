@@ -22,9 +22,11 @@ def main():
     theoretical_arts = []
     theoretical_utils = []
     avg_response_times = []
+    ci_lower = []
+    ci_upper = []
 
-    if os.path.exists("data/avg_response_time.csv"):
-        os.remove("data/avg_response_time.csv")
+    if os.path.exists("data/metrics.csv"):
+        os.remove("data/metrics.csv")
 
     user_count_range = range(18, 21)
     for users in user_count_range:
@@ -36,13 +38,17 @@ def main():
         theoretical_utils.append(theoretical_util)
         print(f"[DEBUG] Computed theoretical util {theoretical_util} for {users} clients.")
 
-    with open("data/avg_response_time.csv", 'r', newline='') as response_time_csv:
+    with open("data/metrics.csv", 'r', newline='') as response_time_csv:
         csv_reader = csv.reader(response_time_csv)
-        for avg_response_time in csv_reader:
-            avg_response_times.append(float(avg_response_time[0]))
+        for metrics in csv_reader:
+            avg_response_times.append(float(metrics[0]))
+            ci_lower.append(float(metrics[1]))
+            ci_upper.append(float(metrics[2]))
 
-    tg.save_metrics_plot(user_count_range, theoretical_arts,
-                         theoretical_utils, avg_response_times,  "locust")
+    print(f"[DEBUG] Avg response times: {avg_response_times}")
+    print(f"[DEBUG] CI lower: {ci_lower}")
+    print(f"[DEBUG] CI upper: {ci_upper}")
+    #tg.save_metrics_plot(user_count_range, theoretical_arts, theoretical_utils, avg_response_times,  "locust")
 
 
 if __name__ == "__main__":
