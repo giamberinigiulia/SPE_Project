@@ -19,11 +19,10 @@ class FlaskServer:
     # attributes for logging the server inactivity state and evaluate the overall inactivity time
     server_starting_time = 0 # initialized before launching the server
     server_active_time = 0 # counter time for activity periods
+    first_call = True
 
 
     def __init__(self, mu_value: float = 10.0, file_path: str = "./data/csv", image_path: str = "./data/images"):
-        # Initialize the server starting time
-        self.server_starting_time = time.time()
         
         # Initialize the Flask application within the class
         self.app = Flask(__name__)
@@ -54,6 +53,12 @@ class FlaskServer:
 
         @self.app.route('/', methods=['GET'])
         def process_task():
+            if self.first_call:
+                # Initialize the server starting time
+                self.server_starting_time = time.time()
+                print(f"Starting time: {self.server_starting_time}")
+                self.first_call = False
+            
             start_processing = time.time() # update the inactive time by counting from the last active period
             random.seed(42)
             # Sample the delay time and perform a CPU bound operation, then log the delay in the csv file

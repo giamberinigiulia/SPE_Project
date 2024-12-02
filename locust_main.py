@@ -2,6 +2,8 @@ import os
 import subprocess
 import csv
 
+import requests
+
 import generator.test_generator as tg
 
 
@@ -11,7 +13,7 @@ def run_locust_test(users):
         "locust", "--headless",
         "-u", str(users),
         "-r", str(users),  # Spawn rate matches the user count
-        "-t", "20s",  # Test duration of 20 seconds
+        "-t", "2s",  # Test duration of 20 seconds
         "-H", "http://127.0.0.1:5000"
     ]
 
@@ -23,9 +25,11 @@ def main():
         os.remove("data/avg_response_time.csv")
 
     # user_counts = range(2, 11)
-    user_counts = range(10, 21)
+    user_counts = range(10,50)
     for users in user_counts:
         run_locust_test(users)
+
+    requests.get("http://127.0.0.1:5000/end")
 
     avg_response_times = []
     with open("data/avg_response_time.csv", 'r', newline='') as response_time_csv:
@@ -37,13 +41,13 @@ def main():
     theoretical_utils = []
 
     for users in user_counts:
-        theoretical_art, theoretical_util = tg.compute_art(users, 1,
-                                                           10, 20)
+        theoretical_art, theoretical_util = tg.compute_art(users, 20,
+                                                           10, 2)
         theoretical_arts.append(theoretical_art)
         theoretical_utils.append(theoretical_util)
         print(f"[DEBUG] Computed theoretical util {theoretical_util} for {users} clients.")
-
-    tg.plot_art(20, theoretical_arts, avg_response_times, theoretical_utils, "locust")
+    
+    tg.plot_art(10, theoretical_arts, avg_response_times, theoretical_utils, "locust")
 
 
 if __name__ == "__main__":

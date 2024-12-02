@@ -21,8 +21,8 @@ def start_server(mu_value, file_path, images_path):
 
 def start_load_generator(client_number, enter_rate, max_time, data_folder_csv, target_url: str = URL):
     # Create a LoadGenerator instance and run it
-    lg = LoadGenerator(number_clients=client_number, enter_rate=enter_rate,
-                       max_time=max_time, csv_directory=data_folder_csv, target_url=target_url)
+    lg = LoadGenerator(client_count=client_number, arrival_rate=enter_rate,
+                    client_request_time=max_time, csv_directory=data_folder_csv, target_url=target_url)
     lg.generate_load()
 
 # TODO: add parameter to specify the folder for the CSV
@@ -97,11 +97,11 @@ if __name__ == '__main__':
     server = Process(target=start_server, args=[mu_rate, data_folder_csv, data_folder_images])
     server.start()
     time.sleep(1)
-    if args.mode == "v" or args.mode == "j":
+    '''if args.mode == "v" or args.mode == "j":
         client = Process(target=start_load_generator, args=[number_clients, lambda_rate, max_time, data_folder_csv])
     elif args.mode == "vt" or args.mode == "jt":
         client = Process(target=start_load_generator_test, args=[number_clients, lambda_rate, mu_rate, max_time, data_folder_csv, data_folder_images])
     client.start()
 
-    client.join()
+    client.join()'''
     server.join()
