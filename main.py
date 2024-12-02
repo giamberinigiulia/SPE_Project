@@ -7,6 +7,7 @@ from multiprocessing import Process
 
 import json_config_manager as manager
 import generator.test_generator as tg
+import locust_main
 from server.flask_server import FlaskServer
 
 FOLDER_PATH = "./data"
@@ -19,34 +20,22 @@ def start_server(mu_value, file_path, images_path):
     server.run()
 
 
-# TODO: add parameter to specify the folder for the CSV
-def start_load_generator(client_count, arrival_rate, service_rate, max_time):
-   # Test for the average response time
-    theoretical_arts, measured_arts = tg.get_average_response_times(
-        client_count, arrival_rate, service_rate, max_time)
-    tg.plot_art(client_count, theoretical_arts, measured_arts)
-
 
 if __name__ == '__main__':
-    # Note: the server should be started before running this script, and it should be accessible at http://127.0.0.1:5000
-
     parser = argparse.ArgumentParser(description="Process some parameters.")
 
-    # Define two subcommands, "Values Parser" to pass values ​​manually through main.py v -m <mu> -l <lambda> -t <maxtime> -n <nclients>
-    # and "Json Parser" to pass values ​​through json file through argument -c.
     subparsers = parser.add_subparsers(dest="mode", required=True)
 
-    # Configuration "Values Parser": main.py v -m <mu> -l <lambda> -t <maxtime> -n <nclients>
     arguments_parser = subparsers.add_parser(
         "v", help="Values Parser mode: main.py v -m <mu> -l <lambda> -t <maxtime> -n <nclients>")
-    arguments_parser.add_argument('-m', type=float, required=True,
-                                  help='Parameter mu (e.g., rate of arrival)')
-    arguments_parser.add_argument('-l', type=float, required=True,
-                                  help='Parameter lambda (e.g., service rate)')
+    arguments_parser.add_argument('-s', type=float, required=True,
+                                  help='Parameter service rate')
+    arguments_parser.add_argument('-a', type=float, required=True,
+                                  help='Parameter arrival rate')
     arguments_parser.add_argument('-t', type=int, required=True,
                                   help='Maximum time to run the simulation')
-    arguments_parser.add_argument('-n', type=int, required=True,
-                                  help='Number of clients to simulate')
+    arguments_parser.add_argument('-u', type=int, nargs=2, required=True,
+                                  help='Range of users')
 
     # Configuration "Json Parser": main.py j -c <json_file_path>
     json_parser = subparsers.add_parser("j", help="Json Parser mode: main.py j -c <json_file_path>")
@@ -56,13 +45,13 @@ if __name__ == '__main__':
 
     # Checking the selected mode
     if args.mode == "v":
-        mu_rate = args.m
-        lambda_rate = args.l
-        client_count = args.n
-        max_time = args.t
+        service_rate = args.s
+        arrival_rate = args.a
+        user_range = range(args.u[0], args.u[1] + 1)
+        user_request_time = args.t
 
     elif args.mode == "j":
-        mu_rate, lambda_rate, client_count, max_time = manager.read_json(args.c)
+        service_rate, arrival_rate, user_range, user_request_time = manager.read_json(args.c)
 
     # Create data folder based on current date and time
     current_time = datetime.datetime.now()
@@ -79,15 +68,11 @@ if __name__ == '__main__':
     os.makedirs(data_folder_csv)
     os.makedirs(data_folder_images)
 
-    manager.generate_json(mu_rate, lambda_rate, client_count, max_time, data_folder)
+    # manager.generate_json(service_rate, arrival_rate, user_range, user_request_time, data_folder)
 
-    server = Process(target=start_server, args=[mu_rate, data_folder_csv, data_folder_images])
+    server = Process(target=start_server, args=[service_rate, data_folder_csv, data_folder_images])
     server.start()
     time.sleep(2)
 
-    # client = Process(target=start_load_generator, args=[
-    #                  client_count, lambda_rate, mu_rate, max_time])
-    # client.start()
-
-    # client.join()
+    locust_main.start_load_generator(user_range, arrival_rate, service_rate, user_request_time)
     server.join()
