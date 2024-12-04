@@ -1,13 +1,12 @@
-import argparse
 import os
 import shutil
 import time
 import datetime
 from multiprocessing import Process
 
-import json_config_manager as manager
-import generator.test_generator as tg
+
 import locust_main
+import argument_parser as arg
 from server.flask_server import FlaskServer
 
 FOLDER_PATH = "./data"
@@ -22,36 +21,8 @@ def start_server(mu_value, file_path, images_path):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Process some parameters.")
-
-    subparsers = parser.add_subparsers(dest="mode", required=True)
-
-    arguments_parser = subparsers.add_parser(
-        "v", help="Values Parser mode: main.py v -m <mu> -l <lambda> -t <maxtime> -n <nclients>")
-    arguments_parser.add_argument('-s', type=float, required=True,
-                                  help='Parameter service rate')
-    arguments_parser.add_argument('-a', type=float, required=True,
-                                  help='Parameter arrival rate')
-    arguments_parser.add_argument('-t', type=int, required=True,
-                                  help='Maximum time to run the simulation')
-    arguments_parser.add_argument('-u', type=int, nargs=2, required=True,
-                                  help='Range of users')
-
-    # Configuration "Json Parser": main.py j -c <json_file_path>
-    json_parser = subparsers.add_parser("j", help="Json Parser mode: main.py j -c <json_file_path>")
-    json_parser.add_argument("-c", type=str, required=True, help="Path of confi.json file")
-
-    args = parser.parse_args()
-
-    # Checking the selected mode
-    if args.mode == "v":
-        service_rate = args.s
-        arrival_rate = args.a
-        user_range = range(args.u[0], args.u[1] + 1)
-        user_request_time = args.t
-
-    elif args.mode == "j":
-        service_rate, arrival_rate, user_range, user_request_time = manager.read_json(args.c)
+    parser = arg.create_parser()
+    service_rate, arrival_rate, user_range, user_request_time = arg.parse_arguments(parser)
 
     # Create data folder based on current date and time
     current_time = datetime.datetime.now()
