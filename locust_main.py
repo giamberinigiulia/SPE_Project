@@ -8,17 +8,19 @@ import generator.test_generator as tg
 MILLISECONDS_PER_SECOND = 1000
 
 
-def run_locust_test(users: int, client_request_time: int) -> None:
+def run_locust_test(users: int, arrival_rate: float, client_request_time: int) -> None:
     # Command to run Locust in headless mode
     command = [
-        "locust", "--headless",
+        "locust", 
+        "--arrival-rate", str(arrival_rate),
+        "--headless",
         "-u", str(users),
         "-r", str(users),  # Users' spawn rate
         "-t", f"{client_request_time}s",  # Test duration
-        "-H", "http://127.0.0.1:5000"
+        "-H", "http://127.0.0.1:5000",
     ]
 
-    subprocess.run(command, capture_output=True, text=True)  # maybe remove capture and text
+    subprocess.run(command, capture_output=True, text=True)
 
 
 def start_load_generator(user_range: range, arrival_rate: float, service_rate: float, client_request_time: int) -> None:
@@ -32,7 +34,7 @@ def start_load_generator(user_range: range, arrival_rate: float, service_rate: f
     ci_upper = []
 
     for users in user_range:
-        run_locust_test(users, client_request_time)
+        run_locust_test(users, arrival_rate, client_request_time)
 
     for users in user_range:
         theoretical_art, theoretical_util = tg.compute_theoretical_metrics(users, arrival_rate, service_rate, client_request_time)

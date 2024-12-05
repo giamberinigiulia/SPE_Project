@@ -4,6 +4,14 @@ from numpy import random, mean
 
 MILLISECONDS_PER_SECOND = 1000
 
+response_times = []
+
+
+@events.init_command_line_parser.add_listener
+def _(parser):
+    parser.add_argument("--arrival-rate", type=float, env_var="LOCUST_MY_ARGUMENT")
+
+
 class User(HttpUser):
 
     @task
@@ -11,7 +19,7 @@ class User(HttpUser):
         self.client.get("/")
 
     def wait_time(self):
-        return random.exponential(1/1)  # change it!
+        return random.exponential(1/self.environment.parsed_options.arrival_rate)
 
 
 @events.request.add_listener
@@ -19,10 +27,9 @@ def on_request_success(request_type, name, response_time, response_length, **kwa
     response_times.append(response_time)
 
 
-response_times = []
-
 @events.quitting.add_listener
 def on_locust_quit(environment, **kwargs):
+    print(f"Quitting Locust and I have arrival rate of: {environment.parsed_options.arrival_rate}")
     if response_times:
         avg_response_time = mean(response_times) / MILLISECONDS_PER_SECOND
         write_csv(avg_response_time)
