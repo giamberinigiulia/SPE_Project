@@ -113,10 +113,10 @@ def save_metrics_plot(client_count_range: range, theoretical_arts: list[float], 
             label='Measured ARTs', color='orange', edgecolor='black', alpha=1)
     
     # Calculate error bars
-    error = [theoretical_arts[i] - ci_lower[i] for i in range(len(theoretical_arts))]
+    error = [measured_arts[i] - ci_lower[i] for i in range(len(measured_arts))]
     
     # Add error bars for confidence intervals
-    ax1.errorbar(x - bar_width / 2, theoretical_arts, yerr=[error, [ci_upper[i] - theoretical_arts[i] for i in range(len(theoretical_arts))]], fmt='none', ecolor='black', capsize=5, label='Confidence Interval')
+    ax1.errorbar(x + bar_width / 2, measured_arts, yerr=[error, [ci_upper[i] - measured_arts[i] for i in range(len(measured_arts))]], fmt='none', ecolor='black', capsize=5, label='Confidence Interval')
 
     ax1.set_xlabel("Number of clients")
     ax1.set_ylabel("Average response time")
