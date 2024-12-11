@@ -22,10 +22,12 @@ class FlaskServer:
     first_call = True
 
 
-    def __init__(self, mu_value: float = 10.0, file_path: str = "./data/csv", image_path: str = "./data/images"):
+    def __init__(self, mu_value: float = 10.0, file_path: str = "./data/csv", image_path: str = "./data/images", server_count: int = 1):
         
         # Initialize the Flask application within the class
         self.app = Flask(__name__)
+
+        self.k_server = server_count
 
         # Store the mu parameter
         self.mu_value = float(mu_value)
@@ -91,8 +93,7 @@ class FlaskServer:
     def run(self):
         # Start the Flask application without multithreading
         print(f"Starting Flask app with mu = {self.mu_value}")
-        k = 1
-        self.app.run(threaded=False, processes = k)
+        self.app.run(threaded=False, processes = self.k_server)
 
 
 if __name__ == '__main__':

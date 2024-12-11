@@ -7,40 +7,26 @@ from scipy.integrate import solve_ivp
 
 from generator.load_generator import LoadGenerator
 
+FOLDER_PATH = "./data"
+URL = "http://127.0.0.1:5000"
 
-MIN_CLIENT_COUNT = 2
 
-
-def get_average_response_times(max_client_count: int, arrival_rate: float, service_rate: float, client_request_time: int, data_path: str) -> tuple[list[float], list[float], list[float]]:
-    """
-    Computes theoretical and measured average response times (ARTs) for a range of client counts.
-
-    Parameters:
-        max_client_count (int): The maximum number of clients to simulate.
-        arrival_rate (float): The rate (in requests per second) at which clients generate requests.
-        service_rate (float): The rate (in requests per second) at which the server processes requests.
-        client_request_time (int): The time (in seconds) in which the client can send requests.
-
-    Returns:
-        tuple[list[float], list[float]]: 
-            - A list of theoretical average response times.
-            - A list of measured average response times.
-    """
+def compute_system_metrics(client_count_range: range, arrival_rate: float, service_rate: float, client_request_time: int, server_count: int) -> tuple[list[float], list[float], list[float]]:
 
     theoretical_arts = []
     theoretical_utils = []
     measured_arts = []
 
-    for client_count in range(MIN_CLIENT_COUNT, max_client_count+1):
-        theoretical_art, theoretical_util = compute_art(client_count, arrival_rate,
-                                service_rate, client_request_time)
+    for client_count in client_count_range:
+        theoretical_art, theoretical_util = compute_theoretical_metrics(client_count, arrival_rate,
+                                                                        service_rate, client_request_time, server_count)
         theoretical_arts.append(theoretical_art)
         theoretical_utils.append(theoretical_util)
-        
+
         print(f"[DEBUG] Computed theoretical ART for {client_count} clients.")
 
         measured_arts.append(compute_average_response_time(LoadGenerator(
-            client_count, arrival_rate, "http://127.0.0.1:5000", client_request_time, data_path)))
+            client_count, arrival_rate, URL, client_request_time, FOLDER_PATH)))
         print(f"[DEBUG] Computed measured ART for {client_count} clients.")
 
     # Ending server after the simulation completes
@@ -60,40 +46,39 @@ def get_average_response_times(max_client_count: int, arrival_rate: float, servi
 
 
 def compute_average_response_time(load_generator: LoadGenerator) -> float:
-    load_generator.generate_load()
-    return compute_total_response_time(load_generator.csv_filename)
-
-
-def compute_total_response_time(csv_filename: str) -> float:
     total_response_time = 0.0
     number_of_responses = 0
 
-    with open(csv_filename, 'r', newline='') as response_time_csv:
-        system_response_times = csv.reader(response_time_csv, delimiter=',')
+    load_generator.generate_load()
 
-        for client_response_times in system_response_times:
-            for response_time in client_response_times:
-                total_response_time += float(response_time)
+    with open(load_generator.csv_filename, 'r', newline='') as response_time_csv:
+        csv_reader = csv.reader(response_time_csv, delimiter=',')
+
+        for response_times in csv_reader:
+            for time in response_times:
+                total_response_time += float(time)
                 number_of_responses += 1
 
     return total_response_time / number_of_responses
 
 
-def rate_matrix(client_count: int, arrival_rate: float, service_rate: float) -> numpy.ndarray:
+def generate_rate_matrix(client_count: int, arrival_rate: float, service_rate: float, server_count: int) -> np.ndarray:
     N = client_count
+    k = server_count
     Q = np.zeros((N + 1, N + 1))
 
     for i in range(N + 1):
         if i < N:  # Only if we are not at the maximum state
-            Q[i, i + 1] = arrival_rate * (N-i)
+            Q[i, i + 1] = arrival_rate * (N - i)
 
         if i > 0:  # Only if we are not at the minimum state (0 clients)
-            Q[i, i - 1] = service_rate
+            # The service rate depends on the number of clients and the number of servers
+            Q[i, i - 1] = service_rate * min(i, k)
 
         if i == 0:  # Special case: state 0, where only arrivals are possible
-            Q[i, i] = -arrival_rate * (N-i)
+            Q[i, i] = -arrival_rate * (N - i)
         elif i == N:  # Special case: state N, where only departures are possible
-            Q[i, i] = -service_rate
+            Q[i, i] = -service_rate * min(i, k)
         else:
             Q[i, i] = -(Q[i, i + 1] + Q[i, i - 1])
 
@@ -112,89 +97,43 @@ def forward_equations(Q: numpy.ndarray, t_max: int, initial_state_probs: numpy.n
     return solution.y.T
 
 
-def compute_forward_equations(Q: numpy.ndarray, initial_state: int, t_max: int) -> numpy.ndarray:
-    initial_state_probs = np.zeros(Q.shape[0])
+def compute_forward_equations(rate_matrix: numpy.ndarray, initial_state: int, t_max: int) -> numpy.ndarray:
+    initial_state_probs = np.zeros(rate_matrix.shape[0])
     initial_state_probs[initial_state] = 1.0  # Start with 100% probability in the initial state
-    probabilities_forward = forward_equations(Q, t_max, initial_state_probs)
+    probabilities_forward = forward_equations(rate_matrix, t_max, initial_state_probs)
     return probabilities_forward
 
 
-def compute_art(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[float, float]:
-    """
-    Computes the theoretical Average Response Time (ART) for a system based on queueing theory.
+def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int, server_count: int) -> tuple[float, float]:
 
-    Parameters:
-        client_count (int): The number of clients interacting with the server.
-        arrival_rate (float): The rate (in requests per second) at which clients generate requests.
-        service_rate (float): The rate (in requests per second) at which the server processes requests.
-        client_request_time (int): The time (in seconds) in which the client can send requests.
-
-    Returns:
-        float: 
-            Theoretical Average Response Time (ART) in seconds.
-
-    Notes:
-        - The ART is derived from queueing theory and considers the time a client spends waiting in the queue 
-          and being served.
-        - This function uses the forward equations method to compute the steady-state probabilities 
-          required for ART estimation.
-    """
-
-    Q = rate_matrix(client_count, arrival_rate, service_rate)
-    probabilities_forward = compute_forward_equations(
-        Q=Q, initial_state=0, t_max=client_request_time)
+    rate_matrix = generate_rate_matrix(client_count, arrival_rate, service_rate, server_count)
+    state_probabilities = compute_forward_equations(
+        rate_matrix=rate_matrix, initial_state=0, t_max=client_request_time)
     # pi_N is the state where I have all the clients waiting to be served
-    util = 1 - probabilities_forward[-1, 0]
-    rtt = client_count/(service_rate*(util))
-    art = rtt - 1/arrival_rate
-    return art, util
+    utilization = 1 - state_probabilities[-1, 0]
+
+    round_trip_time = client_count/(service_rate*(utilization))
+    average_response_time = round_trip_time - 1/arrival_rate
+    return average_response_time, utilization
 
 
-def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: list[float], theoretical_utils: list[float], data_path: str | None = None) -> None:
-    """
-    Generates a bar chart comparing theoretical and measured average response times (ARTs) and a line chart for theoretical utils.
+def save_metrics_plot(client_count_range: range, theoretical_arts: list[float], theoretical_utils: list[float], measured_arts: list[float], ci_lower: list[float], ci_upper: list[float], figure_name: str) -> None:
 
-    Parameters:
-        client_count (int): 
-            The maximum number of clients simulated in the ART computations.
-        theoretical_arts (list[float]): 
-            A list of theoretical ART values corresponding to the client counts.
-        measured_arts (list[float]): 
-            A list of measured ART values corresponding to the client counts.
-        theoretical_utils (list[float]):
-            A list of theoretical utilization values corresponding to the client counts.
-        figure_name (str | None, optional): 
-            The name of the output image file. 
-            - If `None`, the figure is saved as "./data/art.png".
-            - If provided, the figure is saved as "./data/{figure_name}".
-        MIN_CLIENT_COUNT (int, optional):
-            The minimum number of clients. Default is 1.
-
-    Notes:
-        - The x-axis represents the number of clients, starting from `MIN_CLIENT_COUNT` to `client_count`.
-        - Two bar groups are plotted:
-            - Theoretical ARTs (in blue).
-            - Measured ARTs (in orange).
-        - A line plot is added for theoretical utils (in green).
-        - The function saves the figure instead of displaying it.
-
-    Example Usage:
-        theoretical = [0.5, 0.7, 1.0, 1.4, 2.0]
-        measured = [0.6, 0.8, 1.2, 1.5, 2.1]
-        utils = [0.5, 0.6, 0.7, 0.8, 0.9]
-        plot_art(10, theoretical, measured, utils, figure_name="locust.png")
-    """
-
-  
     bar_width = 0.35
-    x = np.arange(MIN_CLIENT_COUNT, client_count + 1)
-    # print(x, theoretical_arts, measured_arts, theoretical_utils)
+    x = np.arange(client_count_range.start, client_count_range.stop)
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
     ax1.bar(x - bar_width / 2, theoretical_arts, bar_width,
             label='Theoretical ARTs', color='skyblue', edgecolor='black', alpha=1)
     ax1.bar(x + bar_width / 2, measured_arts, bar_width,
             label='Measured ARTs', color='orange', edgecolor='black', alpha=1)
+    
+    # Calculate error bars
+    error = [measured_arts[i] - ci_lower[i] for i in range(len(measured_arts))]
+    
+    # Add error bars for confidence intervals
+    ax1.errorbar(x + bar_width / 2, measured_arts, yerr=[error, [ci_upper[i] - measured_arts[i] for i in range(len(measured_arts))]], fmt='none', ecolor='black', capsize=5, label='Confidence Interval')
+
     ax1.set_xlabel("Number of clients")
     ax1.set_ylabel("Average response time")
     ax1.set_title("Average response time and utilization: theoretical vs measured")
@@ -207,7 +146,4 @@ def plot_art(client_count: int, theoretical_arts: list[float], measured_arts: li
 
     fig.tight_layout()
 
-    if data_path is None:
-        plt.savefig("./data/art.png")
-    else:
-        plt.savefig(f"{data_path}/art.png")
+    plt.savefig(f"./data/{figure_name}.png")
