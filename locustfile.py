@@ -35,7 +35,7 @@ def on_locust_quit(environment, **kwargs):
     if response_times:
         avg_response_time = mean(response_times)
         ci = confidence_interval(response_times)
-        write_csv(avg_response_time, ci[0], ci[1])
+        write_csv(avg_response_time, ci[0], ci[1], len(response_times))
 
 
 def confidence_interval(data):
@@ -46,8 +46,8 @@ def confidence_interval(data):
     return (mean - margin_of_error, mean + margin_of_error)
 
 
-def write_csv(avg_response_time: float, lower_bound: float, upper_bound: float) -> None:
+def write_csv(avg_response_time: float, lower_bound: float, upper_bound: float, number_of_responses: int) -> None:
     with open("data/metrics.csv", 'a', newline='') as file:
         wr = writer(file)
-        wr.writerow([avg_response_time, lower_bound, upper_bound])
+        wr.writerow([avg_response_time, lower_bound, upper_bound, number_of_responses])
         file.close()

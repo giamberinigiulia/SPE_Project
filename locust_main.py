@@ -48,6 +48,7 @@ def start_load_generator(user_range: range, arrival_rate: float, service_rate: f
             avg_response_times.append(float(metrics[0]))
             ci_lower.append(float(metrics[1]))
             ci_upper.append(float(metrics[2]))
+            print(f"[DEBUG] Got {metrics[3]} responses from CSV.")
 
     tg.save_metrics_plot(user_range, theoretical_arts, theoretical_utils,
                          avg_response_times, ci_lower, ci_upper, "locust")

@@ -69,7 +69,7 @@ class FlaskServer:
             CPUBoundTask.run(delay)
             # end_time = time.time()
             # delay_analyzer.log_delay_to_csv(mu, end_time-start_time)
-            delay_analyzer.log_delay_to_csv(mu, delay)
+            #delay_analyzer.log_delay_to_csv(mu, delay)
             self.server_active_time += time.time() - start_processing
             return jsonify({"message": "Task completed", "duration": delay})
 
