@@ -8,7 +8,7 @@ import numpy as np
 from server.delay_analyzer import DelayAnalyzer
 from server.cpubound_task import CPUBoundTask
 from server.plot_generator import PlotGenerator
-
+  
 
 class FlaskServer:
     '''
@@ -53,6 +53,7 @@ class FlaskServer:
 
         @self.app.route('/', methods=['GET'])
         def process_task():
+            
             if self.first_call:
                 # Initialize the server starting time
                 self.server_starting_time = time.time()
@@ -90,7 +91,8 @@ class FlaskServer:
     def run(self):
         # Start the Flask application without multithreading
         print(f"Starting Flask app with mu = {self.mu_value}")
-        self.app.run(threaded=False)
+        k = 1
+        self.app.run(threaded=False, processes = k)
 
 
 if __name__ == '__main__':
