@@ -10,9 +10,6 @@ COPY . /app
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
-
 # Define environment variable
 ENV NAME=World
 
@@ -27,4 +24,4 @@ CMD ["/bin/bash"]
 # Build the application
 #       docker build -t speproject . 
 # Launch the application with the specified command
-#       docker run -it -p 80:80 -v .:/app speproject
+#       docker run -it -v .:/app speproject
