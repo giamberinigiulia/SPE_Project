@@ -112,8 +112,14 @@ def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_
     # pi_N is the state where I have all the clients waiting to be served
     utilization = 1 - state_probabilities[-1, 0]
 
-    round_trip_time = client_count/(service_rate*(utilization))
-    average_response_time = round_trip_time - 1/arrival_rate
+    if server_count == 1:
+        round_trip_time = client_count/(service_rate*(utilization))
+        average_response_time = round_trip_time - 1/arrival_rate
+    else:
+        mean_queue_length = 0
+        for i, prob in enumerate(state_probabilities[-1]):
+            mean_queue_length += i * prob
+        average_response_time = mean_queue_length / arrival_rate
     return average_response_time, utilization
 
 
