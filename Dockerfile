@@ -25,3 +25,4 @@ CMD ["/bin/bash"]
 #       docker build -t speproject . 
 # Launch the application with the specified command
 #       docker run -it -v .:/app speproject
+# In the 

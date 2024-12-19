@@ -8,7 +8,10 @@ import numpy as np
 # from server.delay_analyzer import DelayAnalyzer
 from server.cpubound_task import CPUBoundTask
 # from server.plot_generator import PlotGenerator
-  
+
+# create a pool of processes
+from multiprocessing import Pool
+
 
 class FlaskServer:
     '''
@@ -28,6 +31,11 @@ class FlaskServer:
         self.app = Flask(__name__)
 
         self.k_server = server_count
+        # processes = Pool(self.k_server)
+        
+        # # find if there are processes available
+        # if processes:
+        #     print(f"Pool of {self.k_server} processes created")
 
         # Store the mu parameter
         self.mu_value = float(mu_value)
@@ -94,4 +102,3 @@ class FlaskServer:
         # Start the Flask application without multithreading
         print(f"Starting Flask app with mu = {self.mu_value}")
         self.app.run(threaded=False, processes = self.k_server)
-        

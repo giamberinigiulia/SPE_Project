@@ -119,7 +119,8 @@ def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_
         mean_queue_length = 0
         for i, prob in enumerate(state_probabilities[-1]):
             mean_queue_length += i * prob
-        average_response_time = mean_queue_length / arrival_rate
+        # average_response_time = mean_queue_length / arrival_rate
+        average_response_time = mean_queue_length / (arrival_rate * (1 - state_probabilities[-1, client_count]))
     return average_response_time, utilization
 
 
