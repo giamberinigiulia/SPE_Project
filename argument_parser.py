@@ -12,6 +12,7 @@ def add_arguments_subparser(subparser: argparse.ArgumentParser, command_name: st
         subparser.add_argument('-a', type=float, required=True, help='Parameter arrival rate')
         subparser.add_argument('-u', type=int, nargs=2, required=True, help='Range of users')
         subparser.add_argument('-t', type=int, required=True, help='Maximum time to run the simulation')
+        subparser.add_argument('-k', type=int, required=True, help='Number of servers')
 
 
 def create_parser() -> None:
@@ -22,7 +23,7 @@ def create_parser() -> None:
     add_arguments_subparser(json_parser, "json")
 
     run_parser = subparsers.add_parser(
-        "run", help="Default mode: main.py run -s <service_rate> -a <arrival_rate> -t <time> -u <user_range>")
+        "run", help="Default mode: main.py run -s <service_rate> -a <arrival_rate> -t <time> -u <user_range> -k <number_of_servers>")
     add_arguments_subparser(run_parser, "run")
 
     return global_parser
@@ -38,5 +39,6 @@ def parse_arguments(parser: argparse.ArgumentParser) -> Tuple[float, float, rang
         arrival_rate = args.a
         user_range = range(args.u[0], args.u[1] + 1)
         user_request_time = args.t
+        server_count = args.k
 
-    return service_rate, arrival_rate, user_range, user_request_time
+    return service_rate, arrival_rate, user_range, user_request_time, server_count

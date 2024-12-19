@@ -2,6 +2,7 @@ import csv
 import numpy
 import numpy as np
 import matplotlib.pyplot as plt
+import requests
 from scipy.integrate import solve_ivp
 
 from generator.load_generator import LoadGenerator
@@ -10,7 +11,7 @@ FOLDER_PATH = "./data"
 URL = "http://127.0.0.1:5000"
 
 
-def compute_system_metrics(client_count_range: range, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[list[float], list[float], list[float]]:
+def compute_system_metrics(client_count_range: range, arrival_rate: float, service_rate: float, client_request_time: int, server_count: int) -> tuple[list[float], list[float], list[float]]:
 
     theoretical_arts = []
     theoretical_utils = []
@@ -18,7 +19,7 @@ def compute_system_metrics(client_count_range: range, arrival_rate: float, servi
 
     for client_count in client_count_range:
         theoretical_art, theoretical_util = compute_theoretical_metrics(client_count, arrival_rate,
-                                                                        service_rate, client_request_time)
+                                                                        service_rate, client_request_time, server_count)
         theoretical_arts.append(theoretical_art)
         theoretical_utils.append(theoretical_util)
 
@@ -28,6 +29,19 @@ def compute_system_metrics(client_count_range: range, arrival_rate: float, servi
             client_count, arrival_rate, URL, client_request_time, FOLDER_PATH)))
         print(f"[DEBUG] Computed measured ART for {client_count} clients.")
 
+    # Ending server after the simulation completes
+    try:
+        # Send a GET request to the /end route
+        response = requests.get("http://127.0.0.1:5000/end")  # Ensure the port is correct (default is 5000)
+        
+        if response.status_code == 200:
+            print(f"[INFO] Received confirmation from ending server.")
+        else:
+            print(f"[INFO] Failed to get confirmation from ending server. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        # Handle any error during the request (e.g., server not running)
+        print(f"[ERROR] Request failed: {e}")
+        
     return theoretical_arts, measured_arts, theoretical_utils
 
 
@@ -48,21 +62,23 @@ def compute_average_response_time(load_generator: LoadGenerator) -> float:
     return total_response_time / number_of_responses
 
 
-def generate_rate_matrix(client_count: int, arrival_rate: float, service_rate: float) -> numpy.ndarray:
+def generate_rate_matrix(client_count: int, arrival_rate: float, service_rate: float, server_count: int) -> np.ndarray:
     N = client_count
+    k = server_count
     Q = np.zeros((N + 1, N + 1))
 
     for i in range(N + 1):
         if i < N:  # Only if we are not at the maximum state
-            Q[i, i + 1] = arrival_rate * (N-i)
+            Q[i, i + 1] = arrival_rate * (N - i)
 
         if i > 0:  # Only if we are not at the minimum state (0 clients)
-            Q[i, i - 1] = service_rate
+            # The service rate depends on the number of clients and the number of servers
+            Q[i, i - 1] = service_rate * min(i, k)
 
         if i == 0:  # Special case: state 0, where only arrivals are possible
-            Q[i, i] = -arrival_rate * (N-i)
+            Q[i, i] = -arrival_rate * (N - i)
         elif i == N:  # Special case: state N, where only departures are possible
-            Q[i, i] = -service_rate
+            Q[i, i] = -service_rate * min(i, k)
         else:
             Q[i, i] = -(Q[i, i + 1] + Q[i, i - 1])
 
@@ -88,16 +104,23 @@ def compute_forward_equations(rate_matrix: numpy.ndarray, initial_state: int, t_
     return probabilities_forward
 
 
-def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int) -> tuple[float, float]:
+def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int, server_count: int) -> tuple[float, float]:
 
-    rate_matrix = generate_rate_matrix(client_count, arrival_rate, service_rate)
+    rate_matrix = generate_rate_matrix(client_count, arrival_rate, service_rate, server_count)
     state_probabilities = compute_forward_equations(
         rate_matrix=rate_matrix, initial_state=0, t_max=client_request_time)
     # pi_N is the state where I have all the clients waiting to be served
     utilization = 1 - state_probabilities[-1, 0]
 
-    round_trip_time = client_count/(service_rate*(utilization))
-    average_response_time = round_trip_time - 1/arrival_rate
+    if server_count == 1:
+        round_trip_time = client_count/(service_rate*(utilization))
+        average_response_time = round_trip_time - 1/arrival_rate
+    else:
+        mean_queue_length = 0
+        for i, prob in enumerate(state_probabilities[-1]):
+            mean_queue_length += i * prob
+        # average_response_time = mean_queue_length / arrival_rate
+        average_response_time = mean_queue_length / (arrival_rate * (1 - state_probabilities[-1, client_count]))
     return average_response_time, utilization
 
 
