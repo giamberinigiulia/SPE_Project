@@ -1,65 +1,12 @@
-import csv
 import numpy
 import numpy as np
 import matplotlib.pyplot as plt
-import requests
 from scipy.integrate import solve_ivp
-
-from generator.load_generator import LoadGenerator
+from typing import List, Tuple
 
 FOLDER_PATH = "./data"
 URL = "http://127.0.0.1:5000"
 
-
-def compute_system_metrics(client_count_range: range, arrival_rate: float, service_rate: float, client_request_time: int, server_count: int) -> tuple[list[float], list[float], list[float]]:
-
-    theoretical_arts = []
-    theoretical_utils = []
-    measured_arts = []
-
-    for client_count in client_count_range:
-        theoretical_art, theoretical_util = compute_theoretical_metrics(client_count, arrival_rate,
-                                                                        service_rate, client_request_time, server_count)
-        theoretical_arts.append(theoretical_art)
-        theoretical_utils.append(theoretical_util)
-
-        print(f"[DEBUG] Computed theoretical ART for {client_count} clients.")
-
-        measured_arts.append(compute_average_response_time(LoadGenerator(
-            client_count, arrival_rate, URL, client_request_time, FOLDER_PATH)))
-        print(f"[DEBUG] Computed measured ART for {client_count} clients.")
-
-    # Ending server after the simulation completes
-    try:
-        # Send a GET request to the /end route
-        response = requests.get("http://127.0.0.1:5000/end")  # Ensure the port is correct (default is 5000)
-        
-        if response.status_code == 200:
-            print(f"[INFO] Received confirmation from ending server.")
-        else:
-            print(f"[INFO] Failed to get confirmation from ending server. Status code: {response.status_code}")
-    except requests.exceptions.RequestException as e:
-        # Handle any error during the request (e.g., server not running)
-        print(f"[ERROR] Request failed: {e}")
-        
-    return theoretical_arts, measured_arts, theoretical_utils
-
-
-def compute_average_response_time(load_generator: LoadGenerator) -> float:
-    total_response_time = 0.0
-    number_of_responses = 0
-
-    load_generator.generate_load()
-
-    with open(load_generator.csv_filename, 'r', newline='') as response_time_csv:
-        csv_reader = csv.reader(response_time_csv, delimiter=',')
-
-        for response_times in csv_reader:
-            for time in response_times:
-                total_response_time += float(time)
-                number_of_responses += 1
-
-    return total_response_time / number_of_responses
 
 
 def generate_rate_matrix(client_count: int, arrival_rate: float, service_rate: float, server_count: int) -> np.ndarray:
@@ -104,27 +51,29 @@ def compute_forward_equations(rate_matrix: numpy.ndarray, initial_state: int, t_
     return probabilities_forward
 
 
-def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int, server_count: int) -> tuple[float, float]:
+def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_rate: float, client_request_time: int, server_count: int) -> Tuple[float, float]:
 
     rate_matrix = generate_rate_matrix(client_count, arrival_rate, service_rate, server_count)
     state_probabilities = compute_forward_equations(
         rate_matrix=rate_matrix, initial_state=0, t_max=client_request_time)
-    # pi_N is the state where I have all the clients waiting to be served
-    utilization = 1 - state_probabilities[-1, 0]
 
     if server_count == 1:
+        # pi_N is the state where I have all the clients waiting to be served
+        utilization = 1 - state_probabilities[-1, 0]
         round_trip_time = client_count/(service_rate*(utilization))
         average_response_time = round_trip_time - 1/arrival_rate
     else:
+        utilization = 0
         mean_queue_length = 0
         for i, prob in enumerate(state_probabilities[-1]):
+            utilization += min(i, server_count) * prob
             mean_queue_length += i * prob
-        # average_response_time = mean_queue_length / arrival_rate
+        utilization = utilization / server_count    # normalized between 0 and server_count
         average_response_time = mean_queue_length / (arrival_rate * (1 - state_probabilities[-1, client_count]))
     return average_response_time, utilization
 
 
-def save_metrics_plot(client_count_range: range, theoretical_arts: list[float], theoretical_utils: list[float], measured_arts: list[float], ci_lower: list[float], ci_upper: list[float], figure_name: str) -> None:
+def save_metrics_plot(client_count_range: range, theoretical_arts: List[float], theoretical_utils: List[float], measured_arts: List[float], ci_lower: List[float], ci_upper: List[float], figure_name: str) -> None:
 
     bar_width = 0.35
     x = np.arange(client_count_range.start, client_count_range.stop)

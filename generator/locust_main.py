@@ -1,7 +1,6 @@
 import os
 import subprocess
 import csv
-import scipy.stats as st
 
 import generator.test_generator as tg
 
@@ -14,6 +13,7 @@ def run_locust_test(users: int, arrival_rate: float, client_request_time: int) -
         "locust", 
         "--arrival-rate", str(arrival_rate),
         "--headless",
+        "-f", "generator/locustfile.py",
         "-u", str(users),
         "-r", str(users),  # Users' spawn rate
         "-t", f"{client_request_time}s",  # Test duration
@@ -50,6 +50,7 @@ def start_load_generator(user_range: range, arrival_rate: float, service_rate: f
             ci_upper.append(float(metrics[2]))
             print(f"[DEBUG] Got {metrics[3]} responses from CSV.")
 
+    os.remove("data/metrics.csv")
     tg.save_metrics_plot(user_range, theoretical_arts, theoretical_utils,
-                         avg_response_times, ci_lower, ci_upper, "locust")
+                         avg_response_times, ci_lower, ci_upper, f"simulation_s{service_rate}_a{arrival_rate}_t{client_request_time}_k{server_count}")
 
