@@ -57,17 +57,18 @@ def compute_theoretical_metrics(client_count: int, arrival_rate: float, service_
     rate_matrix = generate_rate_matrix(client_count, arrival_rate, service_rate, server_count)
     state_probabilities = compute_forward_equations(
         rate_matrix=rate_matrix, initial_state=0, t_max=client_request_time)
-    # pi_N is the state where I have all the clients waiting to be served
-    utilization = 1 - state_probabilities[-1, 0]
 
     if server_count == 1:
+        # pi_N is the state where I have all the clients waiting to be served
+        utilization = 1 - state_probabilities[-1, 0]
         round_trip_time = client_count/(service_rate*(utilization))
         average_response_time = round_trip_time - 1/arrival_rate
     else:
+        utilization = 0
         mean_queue_length = 0
         for i, prob in enumerate(state_probabilities[-1]):
+            utilization += min(i, server_count) * prob
             mean_queue_length += i * prob
-        # average_response_time = mean_queue_length / arrival_rate
         average_response_time = mean_queue_length / (arrival_rate * (1 - state_probabilities[-1, client_count]))
     return average_response_time, utilization
 
