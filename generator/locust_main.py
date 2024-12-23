@@ -13,6 +13,7 @@ def run_locust_test(users: int, arrival_rate: float, client_request_time: int) -
         "locust", 
         "--arrival-rate", str(arrival_rate),
         "--headless",
+        "-f", "generator/locustfile.py",
         "-u", str(users),
         "-r", str(users),  # Users' spawn rate
         "-t", f"{client_request_time}s",  # Test duration
@@ -23,8 +24,8 @@ def run_locust_test(users: int, arrival_rate: float, client_request_time: int) -
     
 
 def start_load_generator(user_range: range, arrival_rate: float, service_rate: float, client_request_time: int, server_count: int) -> None:
-    if os.path.exists("../data/metrics.csv"):
-        os.remove("../data/metrics.csv")
+    if os.path.exists("data/metrics.csv"):
+        os.remove("data/metrics.csv")
 
     theoretical_arts = []
     theoretical_utils = []
@@ -41,7 +42,7 @@ def start_load_generator(user_range: range, arrival_rate: float, service_rate: f
         theoretical_utils.append(theoretical_util)
         print(f"[DEBUG] Computed theoretical util {theoretical_util} for {users} clients.")
 
-    with open("../data/metrics.csv", 'r', newline='') as response_time_csv:
+    with open("data/metrics.csv", 'r', newline='') as response_time_csv:
         csv_reader = csv.reader(response_time_csv)
         for metrics in csv_reader:
             avg_response_times.append(float(metrics[0]))
@@ -50,5 +51,5 @@ def start_load_generator(user_range: range, arrival_rate: float, service_rate: f
             print(f"[DEBUG] Got {metrics[3]} responses from CSV.")
 
     tg.save_metrics_plot(user_range, theoretical_arts, theoretical_utils,
-                         avg_response_times, ci_lower, ci_upper, "locust")
+                         avg_response_times, ci_lower, ci_upper, f"simulation_a{arrival_rate}_s{service_rate}_t{client_request_time}_k{server_count}")
 

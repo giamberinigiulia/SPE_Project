@@ -47,7 +47,7 @@ def confidence_interval(data):
 
 
 def write_csv(avg_response_time: float, lower_bound: float, upper_bound: float, number_of_responses: int) -> None:
-    with open("../data/metrics.csv", 'a', newline='') as file:
+    with open("data/metrics.csv", 'a', newline='') as file:
         wr = writer(file)
         wr.writerow([avg_response_time, lower_bound, upper_bound, number_of_responses])
         file.close()
