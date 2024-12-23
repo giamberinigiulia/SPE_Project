@@ -52,5 +52,5 @@ def start_load_generator(user_range: range, arrival_rate: float, service_rate: f
 
     os.remove("data/metrics.csv")
     tg.save_metrics_plot(user_range, theoretical_arts, theoretical_utils,
-                         avg_response_times, ci_lower, ci_upper, f"simulation_a{arrival_rate}_s{service_rate}_t{client_request_time}_k{server_count}")
+                         avg_response_times, ci_lower, ci_upper, f"simulation_s{service_rate}_a{arrival_rate}_t{client_request_time}_k{server_count}")
 
