@@ -1,7 +1,6 @@
 import os
 import subprocess
 import csv
-import scipy.stats as st
 
 import generator.test_generator as tg
 
@@ -24,8 +23,8 @@ def run_locust_test(users: int, arrival_rate: float, client_request_time: int) -
     
 
 def start_load_generator(user_range: range, arrival_rate: float, service_rate: float, client_request_time: int, server_count: int) -> None:
-    if os.path.exists("data/metrics.csv"):
-        os.remove("data/metrics.csv")
+    if os.path.exists("../data/metrics.csv"):
+        os.remove("../data/metrics.csv")
 
     theoretical_arts = []
     theoretical_utils = []
@@ -42,7 +41,7 @@ def start_load_generator(user_range: range, arrival_rate: float, service_rate: f
         theoretical_utils.append(theoretical_util)
         print(f"[DEBUG] Computed theoretical util {theoretical_util} for {users} clients.")
 
-    with open("data/metrics.csv", 'r', newline='') as response_time_csv:
+    with open("../data/metrics.csv", 'r', newline='') as response_time_csv:
         csv_reader = csv.reader(response_time_csv)
         for metrics in csv_reader:
             avg_response_times.append(float(metrics[0]))
