@@ -18,7 +18,7 @@ class LoadGenerator:
         self.client_request_time = client_request_time
 
     def send_requests(self, queque: Queue) -> None:
-        elapsed_time = 0
+        elapsed_time = 0.0
         response_times = []
 
         while elapsed_time < self.client_request_time:

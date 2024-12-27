@@ -9,11 +9,11 @@ class Config:
     service_rate: float
     arrival_rate: float
     user_range: range
-    user_request_time: float
+    user_request_time: int
     number_of_servers: int
 
 
-def create_parser() -> None:
+def create_parser() -> ArgumentParser:
     global_parser = ArgumentParser(prog="main", description="Simulate a M/M/1 Queue System")
     subparsers = global_parser.add_subparsers(title="modes of execution", dest="mode")
 
