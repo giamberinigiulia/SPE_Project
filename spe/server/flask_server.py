@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request, send_file  # For creating Flask app a
 import numpy as np
 
 # from server.delay_analyzer import DelayAnalyzer
-from server.cpubound_task import CPUBoundTask
+from spe.server.cpubound_task import CPUBoundTask
 # from server.plot_generator import PlotGenerator
 
 # create a pool of processes
@@ -71,8 +71,8 @@ class FlaskServer:
             # random.seed(42)
             # Sample the delay time and perform a CPU bound operation, then log the delay in the csv file
             delay = self.rng.exponential(1.0 / self.mu_value)
-            time.sleep(delay)
-            #CPUBoundTask.run(delay)
+            #time.sleep(delay)
+            CPUBoundTask.run(delay)
             # end_time = time.time()
             # delay_analyzer.log_delay_to_csv(mu, end_time-start_time)
             # delay_analyzer.log_delay_to_csv(mu, delay)

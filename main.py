@@ -1,9 +1,9 @@
 import time
 from multiprocessing import Process
 
-from generator import locust_main
-import argument_parser as arg
-from server.flask_server import FlaskServer
+from spe.generator import locust_main
+import spe.argument_parser as arg
+from spe.server.flask_server import FlaskServer
 
 FOLDER_PATH = "./data"
 URL = "http://127.0.0.1:5000"

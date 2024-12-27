@@ -1,8 +1,9 @@
 import numpy
 import numpy as np
+from typing import List, Tuple
+
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-from typing import List, Tuple
 
 FOLDER_PATH = "./data"
 URL = "http://127.0.0.1:5000"

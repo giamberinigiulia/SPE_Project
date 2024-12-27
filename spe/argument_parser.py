@@ -1,7 +1,7 @@
 import argparse
 from typing import Tuple
 
-import json_config_manager as manager
+import spe.json_config_manager as manager
 
 
 def add_arguments_subparser(subparser: argparse.ArgumentParser, command_name: str) -> None:
