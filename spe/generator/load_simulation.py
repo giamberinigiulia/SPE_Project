@@ -1,5 +1,3 @@
-import os
-
 import spe.generator.load_generator as lg
 import spe.utils.file as file
 from spe.utils.metrics import compute_theoretical_metrics

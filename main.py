@@ -5,9 +5,6 @@ from spe.generator import load_simulation
 import spe.argument_parser as arg
 from spe.server.flask_server import FlaskServer
 
-FOLDER_PATH = "./data"
-URL = "http://127.0.0.1:5000"
-
 
 def start_server(mu_value, server_count):
     # Create a Server instance and run it
