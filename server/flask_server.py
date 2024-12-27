@@ -1,8 +1,5 @@
-import sys
 import time
 from flask import Flask, jsonify, request, send_file  # For creating Flask app and handling responses
-import os                                    # For file operations (deleting files)
-import random                                # For setting random seed
 import numpy as np
 
 # from server.delay_analyzer import DelayAnalyzer
@@ -39,14 +36,14 @@ class FlaskServer:
 
         # Store the mu parameter
         self.mu_value = float(mu_value)
-
+        self.rng = np.random.default_rng(42)
         # Set paths based on mu_value
         # extensionFileName = f"_{str(self.mu_value).split('.')[0]}_{str(self.mu_value).split('.')[1]}"
         # self.csv_path = f"{file_path}/request_delays{extensionFileName}.csv"
         # self.images_path = f"{image_path}/plot{extensionFileName}.png"
 
         # Store configurations in the Flask app
-        self.app.config['MU'] = self.mu_value
+        # self.app.config['MU'] = self.mu_value
         # self.app.config['csv_path'] = self.csv_path
         # self.app.config['images_path'] = self.images_path
 
@@ -55,7 +52,7 @@ class FlaskServer:
 
     def __setup_routes(self):
         # retrieve mu value from configuration attributes of the app
-        mu = self.app.config.get('MU')
+        # mu = self.app.config.get('MU')
 
         # inizialize the delay_analyzer and the plot_generator with file names
         # delay_analyzer = DelayAnalyzer(self.app.config['csv_path'])
@@ -71,10 +68,11 @@ class FlaskServer:
                 self.first_call = False
             
             start_processing = time.time() # update the inactive time by counting from the last active period
-            random.seed(42)
+            # random.seed(42)
             # Sample the delay time and perform a CPU bound operation, then log the delay in the csv file
-            delay = np.random.exponential(1.0 / mu)
-            CPUBoundTask.run(delay)
+            delay = self.rng.exponential(1.0 / self.mu_value)
+            time.sleep(delay)
+            #CPUBoundTask.run(delay)
             # end_time = time.time()
             # delay_analyzer.log_delay_to_csv(mu, end_time-start_time)
             # delay_analyzer.log_delay_to_csv(mu, delay)
@@ -101,4 +99,5 @@ class FlaskServer:
     def run(self):
         # Start the Flask application without multithreading
         print(f"Starting Flask app with mu = {self.mu_value}")
-        self.app.run(threaded=False, processes = self.k_server)
+        self.app.run(debug=False,threaded=False, processes = self.k_server)
+

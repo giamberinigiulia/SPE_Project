@@ -1,12 +1,15 @@
+import time
+import numpy as np
 from csv import writer
 from locust import HttpUser, task, events
-from numpy import random, mean
-import numpy as np
+from locust.env import Environment
 from scipy import stats
+from typing import Tuple, List, Any
 
 MILLISECONDS_PER_SECOND = 1000
 
 response_times = []
+rng = np.random.default_rng(42)
 
 
 @events.init_command_line_parser.add_listener
@@ -17,28 +20,31 @@ def _(parser):
 class User(HttpUser):
 
     @task
-    def load_home_page(self):
-        self.client.get("/")
+    def load_server_page(self):
+        with self.client.get("/") as response:
+            if response.status_code == 200:
+                elapsed_time = response.elapsed.seconds
+                think_time = rng.exponential(1/self.environment.parsed_options.arrival_rate)
+                time.sleep(think_time)
+                response_times.append(elapsed_time + think_time)
 
-    def wait_time(self):
-        return random.exponential(1/self.environment.parsed_options.arrival_rate)
+   
+# @events.request.add_listener
+# def on_request_success(response_time, **kwargs: Any):
 
-
-@events.request.add_listener
-def on_request_success(request_type, name, response_time, response_length, **kwargs):
-    response_times.append(response_time / MILLISECONDS_PER_SECOND)
+#     response_times.append(response_time / MILLISECONDS_PER_SECOND + think_time)
 
 
 @events.quitting.add_listener
-def on_locust_quit(environment, **kwargs):
+def on_locust_quit(environment: Environment, **kwargs: Any) -> None:
     print(f"Quitting Locust and I have arrival rate of: {environment.parsed_options.arrival_rate}")
     if response_times:
-        avg_response_time = mean(response_times)
-        ci = confidence_interval(response_times)
+        avg_response_time = sum(response_times)/len(response_times)
+        ci = compute_confidence_interval(response_times)
         write_csv(avg_response_time, ci[0], ci[1], len(response_times))
 
 
-def confidence_interval(data):
+def compute_confidence_interval(data: List) -> Tuple[float, float]:
     mean = np.mean(data)
     std = np.std(data)
     n_obs = len(data)
