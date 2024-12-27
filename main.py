@@ -1,7 +1,7 @@
 import time
 from multiprocessing import Process
 
-from spe.generator import locust_main
+from spe.generator import load_simulation
 import spe.argument_parser as arg
 from spe.server.flask_server import FlaskServer
 
@@ -23,5 +23,5 @@ if __name__ == '__main__':
     server.start()
     time.sleep(2)
 
-    locust_main.start_load_generator(user_range, arrival_rate, service_rate, user_request_time, server_count)
+    load_simulation.start_load_simulation(user_range, arrival_rate, service_rate, user_request_time, server_count)
     server.join()

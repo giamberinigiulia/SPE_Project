@@ -1,10 +1,10 @@
-import argparse
+from argparse import ArgumentParser
 from typing import Tuple
 
 import spe.json_config_manager as manager
 
 
-def add_arguments_subparser(subparser: argparse.ArgumentParser, command_name: str) -> None:
+def add_arguments_subparser(subparser: ArgumentParser, command_name: str) -> None:
     if command_name == "json":
         subparser.add_argument("-f", type=str, required=True, help="Path of config.json")
     else:
@@ -16,7 +16,7 @@ def add_arguments_subparser(subparser: argparse.ArgumentParser, command_name: st
 
 
 def create_parser() -> None:
-    global_parser = argparse.ArgumentParser(prog="main", description="Simulate a M/M/1 Queue System")
+    global_parser = ArgumentParser(prog="main", description="Simulate a M/M/1 Queue System")
     subparsers = global_parser.add_subparsers(title="modes of execution", dest="mode")
 
     json_parser = subparsers.add_parser("json", help="Json Parser mode: main.py json -f <json_file_path>")
@@ -29,7 +29,7 @@ def create_parser() -> None:
     return global_parser
 
 
-def parse_arguments(parser: argparse.ArgumentParser) -> Tuple[float, float, range, int]:
+def parse_arguments(parser: ArgumentParser) -> Tuple[float, float, range, int]:
     args = parser.parse_args()
 
     if args.mode == "json":

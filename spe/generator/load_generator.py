@@ -60,4 +60,4 @@ class LoadGenerator:
 
         avg_response_time = compute_mean(response_times)
         ci = compute_confidence_interval(response_times)
-        write_csv(avg_response_time, ci[0], ci[1])
+        write_csv("data/metrics.csv", avg_response_time, ci[0], ci[1])
