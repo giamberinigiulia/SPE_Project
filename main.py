@@ -1,24 +1,24 @@
 import time
 from multiprocessing import Process
 
-from spe.generator import load_simulation
+from spe.generator import simulation
 import spe.argument_parser as arg
 from spe.server.flask_server import FlaskServer
 
-
-def start_server(mu_value, server_count):
+# Maybe is possible to move this class in flask server module
+def start_server(system_config: arg.Config) -> None:
     # Create a Server instance and run it
-    server = FlaskServer(mu_value, server_count)
+    server = FlaskServer(system_config.service_rate, system_config.number_of_servers)
     server.run()
 
 
 if __name__ == '__main__':
     parser = arg.create_parser()
-    service_rate, arrival_rate, user_range, user_request_time, server_count = arg.parse_arguments(parser)
+    system_config = arg.parse_arguments(parser)
 
-    server = Process(target=start_server, args=[service_rate, server_count])
+    server = Process(target=start_server, args=[system_config])
     server.start()
     time.sleep(2)
 
-    load_simulation.start_load_simulation(user_range, arrival_rate, service_rate, user_request_time, server_count)
+    simulation.start_load_simulation(system_config)
     server.join()

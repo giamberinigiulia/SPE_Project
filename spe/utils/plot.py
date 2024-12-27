@@ -3,21 +3,26 @@ from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spe.utils.metrics import Metrics
+from spe.argument_parser import Config
+from spe.utils.metric import MeasuredMetric, TheoreticalMetric
 
+FIGURE_FOLDER = "data/"
 
-def save_metrics_plot(client_count_range: range, theoretical_arts: List[float], theoretical_utils: List[float], system_metrics: Metrics, figure_name: str) -> None:
-    avg_response_times = system_metrics.avg_response_times
-    upper_bounds = system_metrics.upper_bounds
-    lower_bounds = system_metrics.lower_bounds
+def save_metrics_plot(system_config: Config, theoretical_metrics: List[TheoreticalMetric], measured_metrics: List[MeasuredMetric]) -> None:
+    user_range = system_config.user_range
+    theoretical_arts = [metric.avg_response_time for metric in theoretical_metrics]
+    theoretical_utils = [metric.utilization for metric in theoretical_metrics]
+    avg_response_times = [metric.avg_response_time for metric in measured_metrics]
+    lower_bounds = [metric.lower_bound for metric in measured_metrics]
+    upper_bounds = [metric.upper_bound for metric in measured_metrics]
 
     bar_width = 0.35
-    x = np.arange(client_count_range.start, client_count_range.stop)
+    x = np.arange(user_range.start, user_range.stop)
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
     ax1.bar(x - bar_width / 2, theoretical_arts, bar_width,
             label='Theoretical ARTs', color='skyblue', edgecolor='black', alpha=1)
-    ax1.bar(x + bar_width / 2, system_metrics.avg_response_times, bar_width,
+    ax1.bar(x + bar_width / 2, avg_response_times, bar_width,
             label='Measured ARTs', color='orange', edgecolor='black', alpha=1)
 
     # Calculate and add error bars for confidence intervals
@@ -37,4 +42,9 @@ def save_metrics_plot(client_count_range: range, theoretical_arts: List[float], 
 
     fig.tight_layout()
 
-    plt.savefig(f"./data/{figure_name}.png")
+    figure_name = f"simulation_s{system_config.service_rate}_a{system_config.arrival_rate}_t{system_config.user_request_time}_k{system_config.number_of_servers}"
+    figure_path = f"{FIGURE_FOLDER}{figure_name}.png"
+    plt.savefig(figure_path)
+    plt.close()
+
+

@@ -2,7 +2,7 @@ from csv import writer, reader
 import os
 from typing import List, Tuple
 
-from spe.utils.metrics import Metrics
+from spe.utils.metric import MeasuredMetric
 
 CSV_FILENAME = "data/metrics.csv"
 
@@ -18,16 +18,15 @@ def write_csv(csv_filename: str, avg_response_time: float, lower_bound: float, u
         wr.writerow([avg_response_time, lower_bound, upper_bound])
 
 
-def read_csv(csv_filename: str) -> Metrics:
-    avg_response_times = []
-    ci_lower = []
-    ci_upper = []
+def read_csv(csv_filename: str) -> List[MeasuredMetric]:
+    measured_metrics = []
 
     with open(csv_filename, 'r', newline='') as csv_file:
         csv_reader = reader(csv_file)
         for metrics in csv_reader:
-            avg_response_times.append(float(metrics[0]))
-            ci_lower.append(float(metrics[1]))
-            ci_upper.append(float(metrics[2]))
+            avg_response_time = float(metrics[0])
+            lower_bound = float(metrics[1])
+            upper_bound = float(metrics[2])
+            measured_metrics.append(MeasuredMetric(avg_response_time, lower_bound, upper_bound))
     
-    return Metrics(avg_response_times, ci_lower, ci_upper)
+    return measured_metrics

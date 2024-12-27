@@ -5,13 +5,22 @@ import numpy as np
 from scipy import stats
 from scipy.integrate import solve_ivp
 
+from spe.argument_parser import Config
+
 INITIAL_STATE = 0
 
 @dataclass
-class Metrics:
-    avg_response_times: List[float]
-    lower_bounds: List[float]
-    upper_bounds: List[float]
+class Metric:
+    avg_response_time: float
+
+@dataclass
+class MeasuredMetric(Metric):
+    lower_bound: float
+    upper_bound: float
+
+@dataclass
+class TheoreticalMetric(Metric):
+    utilization: float
 
 def compute_confidence_interval(data: List) -> Tuple[float, float]:
     mean = np.mean(data)
@@ -25,25 +34,35 @@ def compute_mean(data: List) -> float:
     return sum(data)/len(data)
 
 
-def compute_theoretical_metrics(number_of_users: int, arrival_rate: float, service_rate: float, client_request_time: int, number_of_servers: int) -> Tuple[float, float]:
-    rate_matrix = _generate_rate_matrix(number_of_users, arrival_rate, service_rate, number_of_servers)
-    state_probabilities = _compute_forward_equations(rate_matrix, INITIAL_STATE, client_request_time)
+def compute_theoretical_metrics(system_config: Config) -> List[TheoreticalMetric]:
+    theoretical_metrics = []
+    service_rate = system_config.service_rate
+    arrival_rate = system_config.arrival_rate
+    user_range = system_config.user_range
+    user_request_time = system_config.user_request_time
+    number_of_servers = system_config.number_of_servers
 
-    # pi_N is the state where I have all the clients waiting to be served
-    if number_of_servers == 1:
-        utilization = 1 - state_probabilities[-1, 0]
-        round_trip_time = number_of_users/(service_rate*(utilization))
-        average_response_time = round_trip_time - 1/arrival_rate
-    else:
-        utilization = 0
-        mean_queue_length = 0
-        for i, prob in enumerate(state_probabilities[-1]):
-            utilization += min(i, number_of_servers) * prob
-            mean_queue_length += i * prob
-        utilization = utilization / number_of_servers    # normalized between 0 and number_of_servers
-        average_response_time = mean_queue_length / (arrival_rate * (1 - state_probabilities[-1, number_of_users]))
+    for number_of_users in user_range:
+        rate_matrix = _generate_rate_matrix(number_of_users, arrival_rate, service_rate, number_of_servers)
+        state_probabilities = _compute_forward_equations(rate_matrix, INITIAL_STATE, user_request_time)
 
-    return average_response_time, utilization
+        # pi_N is the state where I have all the clients waiting to be served
+        if number_of_servers == 1:
+            utilization = 1 - state_probabilities[-1, 0]
+            round_trip_time = number_of_users/(service_rate*(utilization))
+            average_response_time = round_trip_time - 1/arrival_rate
+        else:
+            utilization = 0
+            mean_queue_length = 0
+            for i, prob in enumerate(state_probabilities[-1]):
+                utilization += min(i, number_of_servers) * prob
+                mean_queue_length += i * prob
+            utilization = utilization / number_of_servers    # normalized between 0 and number_of_servers
+            average_response_time = mean_queue_length / (arrival_rate * (1 - state_probabilities[-1, number_of_users]))\
+            
+        theoretical_metrics.append(TheoreticalMetric(average_response_time, utilization))
+
+    return theoretical_metrics
 
 
 def _generate_rate_matrix(number_of_users: int, arrival_rate: float, service_rate: float, number_of_servers: int) -> np.ndarray:

@@ -4,7 +4,7 @@ from multiprocessing import Process, Queue
 import requests
 import numpy as np
 
-from spe.utils.metrics import compute_mean, compute_confidence_interval
+from spe.utils.metric import compute_mean, compute_confidence_interval
 from spe.utils.file import write_csv
 
 
