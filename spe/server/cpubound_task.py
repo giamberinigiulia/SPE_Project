@@ -5,10 +5,12 @@ class CPUBoundTask:
     def run(duration):
         # Simulate a CPU-bound task. Fibonacci series calculation
         n = 70  # You can adjust this value for larger computations
-        end_time = time.time() + duration
+        inital_time = time.time()
+        end_time = inital_time + duration
         while time.time() < end_time:
             x = CPUBoundTask._fibonacci(n, end_time)  # Call the private method
             print(x)
+        return time.time() - inital_time
 
     @staticmethod
     def _fibonacci(n, end_time):

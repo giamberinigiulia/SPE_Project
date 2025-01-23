@@ -31,5 +31,6 @@ def start_load_simulation(system_config: Config) -> None:
     print(response.text)
 
 def _run_load_simulation(number_of_users: int, arrival_rate: float, target_url: str, client_request_time: int) -> None:
+    # from now on, it will be executed with number_of_users
     load_generator = lg.LoadGenerator(number_of_users, arrival_rate, target_url, client_request_time)
     load_generator.generate_load()

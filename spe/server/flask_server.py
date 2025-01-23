@@ -23,43 +23,19 @@ class FlaskServer:
     _pool = None
 
 
-    # def __init__(self, mu_value: float = 10.0, file_path: str = "./data/csv", image_path: str = "./data/images", server_count: int = 1):
     def __init__(self, mu_value: float = 10.0, server_count: int = 1):
-        # Initialize the Flask application within the class
+
         self.app = Flask(__name__)
 
         self.k_server = server_count
         self._pool = Pool(processes = self.k_server)
-        # processes = Pool(self.k_server)
-        
-        # # find if there are processes available
-        # if processes:
-        #     print(f"Pool of {self.k_server} processes created")
-
-        # Store the mu parameter
         self.mu_value = float(mu_value)
-        self.rng = np.random.default_rng(42)
-        # Set paths based on mu_value
-        # extensionFileName = f"_{str(self.mu_value).split('.')[0]}_{str(self.mu_value).split('.')[1]}"
-        # self.csv_path = f"{file_path}/request_delays{extensionFileName}.csv"
-        # self.images_path = f"{image_path}/plot{extensionFileName}.png"
+        self.rng = np.random.default_rng(42)     
 
-        # Store configurations in the Flask app
-        # self.app.config['MU'] = self.mu_value
-        # self.app.config['csv_path'] = self.csv_path
-        # self.app.config['images_path'] = self.images_path
-
-        # Initialize routes
         self.__setup_routes()
 
+
     def __setup_routes(self):
-        # retrieve mu value from configuration attributes of the app
-        # mu = self.app.config.get('MU')
-
-        # inizialize the delay_analyzer and the plot_generator with file names
-        # delay_analyzer = DelayAnalyzer(self.app.config['csv_path'])
-        # plot_generator = PlotGenerator(self.app.config['images_path'])
-
         @self.app.route('/', methods=['GET'])
         def process_task():
             
@@ -68,19 +44,12 @@ class FlaskServer:
                 self.server_starting_time = time.time()
                 print(f"Starting time: {self.server_starting_time}")
                 self.first_call = False
-            
-            start_processing = time.time() # update the inactive time by counting from the last active period
-            # random.seed(42)
-            # Sample the delay time and perform a CPU bound operation, then log the delay in the csv file
+
             delay = self.rng.exponential(1.0 / self.mu_value)
-            #time.sleep(delay)
-            self._pool.map(CPUBoundTask.run, [delay])
-            # CPUBoundTask.run(delay)
-            # end_time = time.time()
-            # delay_analyzer.log_delay_to_csv(mu, end_time-start_time)
-            # delay_analyzer.log_delay_to_csv(mu, delay)
-            self.server_active_time += time.time() - start_processing
-            return jsonify({"message": "Task completed", "duration": delay})
+            execution_time = self._pool.map(CPUBoundTask.run, [delay])
+            self.server_active_time += execution_time[0]
+
+            return jsonify({"message": "Task completed"})
 
         @self.app.route('/end', methods=['GET'])
         def end_server():
@@ -90,17 +59,30 @@ class FlaskServer:
             print(f"Server started at {self.server_starting_time} and ended at {server_shutdown_time}")
             print(f"Server duration: {server_shutdown_time - self.server_starting_time} seconds")
             print(f"Server active time: {self.server_active_time} seconds")
-            print(f"Server activity utils: {self.server_active_time * 100 / (server_shutdown_time - self.server_starting_time)} %")
+            print(f"Server activity utils: {(self.server_active_time * self.k_server / (server_shutdown_time - self.server_starting_time)) * 100} %")
             # Return JSON response with calculated metrics
             return jsonify({
                 "activity_period": self.server_active_time,
                 "server_up_time": server_shutdown_time - self.server_starting_time,
                 "measured_utils_percentage": (self.server_active_time / (server_shutdown_time - self.server_starting_time)) * 100
                 })
+            # (self.server_active_time/k) / (server_shutdown_time - self.server_starting_time)) * 100
+            # s1: 2s/10s, s2: 3s/10s, s3: 4s/10s --> 9s/(10s * 3) --> 30% --> 0.3
+            # s1: 2s/10s, s2: 3s/10s, s3: 4s/10s --> (9s / 3)/10s --> 30% --> 0.3
 
+        # @self.app.route('/refresh', methods=['GET']) --> chiamata bloccante --> il load generator non invia load finchè non riceve risposta
+        # altrimenti non siamo in grado di valutare le metriche e rilanciare il tutto --> salvare in un csv (?)
+        # salvarsi quante richieste sono state accolte e per ogni richiesta il numero di server attualmente in funzione 
+        # calcolare il tempo di attività di ogni server e il tempo di inattività
+        @self.app.route('/refresh', methods=['GET'])
+        def refresh_server():
+
+            return jsonify({"message": "Server is refreshing"})
+            
 
     def run(self):
         # Start the Flask application without multithreading
         print(f"Starting Flask app with mu = {self.mu_value}")
         self.app.run(debug=False,threaded=False)
 
+    
