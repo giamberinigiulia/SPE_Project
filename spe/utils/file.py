@@ -13,6 +13,8 @@ def delete_file_if_exists(file_path: str) -> None:
 
 
 def write_csv(csv_filename: str, avg_response_time: float, lower_bound: float, upper_bound: float) -> None:
+    if not os.path.exists(csv_filename.split("/")[0]):
+        os.makedirs(csv_filename.split("/")[0])
     with open(csv_filename, 'a', newline='') as csv_file:
         wr = writer(csv_file)
         wr.writerow([avg_response_time, lower_bound, upper_bound])

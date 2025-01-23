@@ -20,6 +20,7 @@ class FlaskServer:
     server_starting_time = 0 # initialized before launching the server
     server_active_time = 0 # counter time for activity periods
     first_call = True
+    _pool = None
 
 
     # def __init__(self, mu_value: float = 10.0, file_path: str = "./data/csv", image_path: str = "./data/images", server_count: int = 1):
@@ -28,6 +29,7 @@ class FlaskServer:
         self.app = Flask(__name__)
 
         self.k_server = server_count
+        self._pool = Pool(processes = self.k_server)
         # processes = Pool(self.k_server)
         
         # # find if there are processes available
@@ -72,7 +74,8 @@ class FlaskServer:
             # Sample the delay time and perform a CPU bound operation, then log the delay in the csv file
             delay = self.rng.exponential(1.0 / self.mu_value)
             #time.sleep(delay)
-            CPUBoundTask.run(delay)
+            self._pool.map(CPUBoundTask.run, [delay])
+            # CPUBoundTask.run(delay)
             # end_time = time.time()
             # delay_analyzer.log_delay_to_csv(mu, end_time-start_time)
             # delay_analyzer.log_delay_to_csv(mu, delay)
@@ -99,5 +102,5 @@ class FlaskServer:
     def run(self):
         # Start the Flask application without multithreading
         print(f"Starting Flask app with mu = {self.mu_value}")
-        self.app.run(debug=False,threaded=False, processes = self.k_server)
+        self.app.run(debug=False,threaded=False)
 

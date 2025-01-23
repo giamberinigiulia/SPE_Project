@@ -3,7 +3,9 @@ import spe.utils.file as file
 from spe.utils.metric import compute_theoretical_metrics
 from spe.utils.plot import save_metrics_plot
 from spe.argument_parser import Config
-
+#
+import requests
+#
 TARGET_URL = "http://127.0.0.1:5000"
 
 
@@ -25,6 +27,8 @@ def start_load_simulation(system_config: Config) -> None:
     save_metrics_plot(system_config, theoretical_metrics, system_metrics)
     print("[DEBUG] end of simulation!")
 
+    response = requests.get(TARGET_URL + "/end")
+    print(response.text)
 
 def _run_load_simulation(number_of_users: int, arrival_rate: float, target_url: str, client_request_time: int) -> None:
     load_generator = lg.LoadGenerator(number_of_users, arrival_rate, target_url, client_request_time)
