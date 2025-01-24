@@ -31,7 +31,7 @@ class FlaskServer:
         self._pool = Pool(processes = self.k_server)
         self.mu_value = float(mu_value)
         self.rng = np.random.default_rng(42)     
-
+        self.server_requests = 0
         self.__setup_routes()
 
 
@@ -39,13 +39,14 @@ class FlaskServer:
         @self.app.route('/', methods=['GET'])
         def process_task():
             
-            if self.first_call:
+            """if self.first_call:
                 # Initialize the server starting time
                 self.server_starting_time = time.time()
-                print(f"Starting time: {self.server_starting_time}")
-                self.first_call = False
+                print(f"[DEBUG SERVER] Starting time: {self.server_starting_time}")
+                self.first_call = False"""
 
             delay = self.rng.exponential(1.0 / self.mu_value)
+            self.server_requests += 1
             execution_time = self._pool.map(CPUBoundTask.run, [delay])
             self.server_active_time += execution_time[0]
 
@@ -56,10 +57,10 @@ class FlaskServer:
             # Log the server shutdown time
             server_shutdown_time = time.time()
             # Print the server duration time 
-            print(f"Server started at {self.server_starting_time} and ended at {server_shutdown_time}")
-            print(f"Server duration: {server_shutdown_time - self.server_starting_time} seconds")
-            print(f"Server active time: {self.server_active_time} seconds")
-            print(f"Server activity utils: {(self.server_active_time * self.k_server / (server_shutdown_time - self.server_starting_time)) * 100} %")
+            print(f"[DEBUG SERVER] Server started at {self.server_starting_time} and ended at {server_shutdown_time}")
+            print(f"[DEBUG SERVER] Server duration: {server_shutdown_time - self.server_starting_time} seconds")
+            print(f"[DEBUG SERVER] Server active time: {self.server_active_time} seconds")
+            print(f"[DEBUG SERVER] Server activity utils: {(self.server_active_time * self.k_server / (server_shutdown_time - self.server_starting_time)) * 100} %")
             # Return JSON response with calculated metrics
             return jsonify({
                 "activity_period": self.server_active_time,
@@ -74,15 +75,44 @@ class FlaskServer:
         # altrimenti non siamo in grado di valutare le metriche e rilanciare il tutto --> salvare in un csv (?)
         # salvarsi quante richieste sono state accolte e per ogni richiesta il numero di server attualmente in funzione 
         # calcolare il tempo di attività di ogni server e il tempo di inattività
-        @self.app.route('/refresh', methods=['GET'])
+        @self.app.route('/refresh', methods=['POST'])
         def refresh_server():
+            # Take the number_of_clients from the request
+            number_of_users = request.json['number_of_users']
 
+            # Log the server shutdown time
+            server_shutdown_time = time.time()
+            # Print the server duration time 
+            if number_of_users > 1:
+                # put the following into a file and separate with an horizontal line from the next
+                    # Prepare the debug information
+                debug_info = (
+                    f"[DEBUG SERVER] Server started at {self.server_starting_time} and refreshed at {server_shutdown_time}\n"
+                    f"[DEBUG SERVER] Server duration: {server_shutdown_time - self.server_starting_time} seconds\n"
+                    f"[DEBUG SERVER] Server active time: {self.server_active_time} seconds\n"
+                    f"[DEBUG SERVER] Server activity utils: {(self.server_active_time / (server_shutdown_time - self.server_starting_time)) * 100} %\n"
+                    f"[DEBUG SERVER] The server has received {self.server_requests} requests during the last session with {number_of_users - 1} clients\n"
+                    "------------------------------------------------------------\n"
+                )
+                
+                # Write the debug information to a text file
+                with open('data/server_debug_info.txt', 'a') as file:
+                    file.write(debug_info)
+
+            # Reset all the variables of the server
+            self.server_starting_time = time.time()
+            self.server_active_time = 0
+            self.server_requests = 0
+
+            # Debug log with f-string formatting
+            print(f"[DEBUG SERVER] Server refreshed and now starting with new clients: {number_of_users}")
             return jsonify({"message": "Server is refreshing"})
+
             
 
     def run(self):
         # Start the Flask application without multithreading
-        print(f"Starting Flask app with mu = {self.mu_value}")
+        print(f"[DEBUG SERVER] Starting Flask app with mu = {self.mu_value}")
         self.app.run(debug=False,threaded=False)
 
     

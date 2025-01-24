@@ -61,3 +61,17 @@ class LoadGenerator:
         avg_response_time = compute_mean(response_times)
         ci = compute_confidence_interval(response_times)
         write_csv("data/metrics.csv", avg_response_time, ci[0], ci[1])
+
+    def get_server_status(self) -> None:
+        response = requests.get(self.target_url + "/status")
+        if response.status_code == 200:
+            print(f"[DEBUG SERVER -> LOAD GENERATOR] Server status: {response.json()}")
+        else:
+            print(f"[DEBUG SERVER -> LOAD GENERATOR] Failed to get server status: {response.status_code}")
+
+    def refresh_server(self, number_of_users) -> None:
+        #send the number of users to the server
+        response = None  # Initialize the response variable
+        while response is None or response.status_code != 200:
+            response = requests.post(self.target_url + "/refresh", json={"number_of_users": number_of_users})
+            print(f"[DEBUG SERVER -> LOAD GENERATOR] Response from the server: {response.text}")

@@ -27,10 +27,14 @@ def start_load_simulation(system_config: Config) -> None:
     save_metrics_plot(system_config, theoretical_metrics, system_metrics)
     print("[DEBUG] end of simulation!")
 
-    response = requests.get(TARGET_URL + "/end")
-    print(response.text)
+    response = None
+    while response is None or response.status_code != 200:
+        response = requests.get(TARGET_URL + "/end")
+        print("[DEBUG SERVER -> SIMULATION] Response from the server: {response.text}")
 
 def _run_load_simulation(number_of_users: int, arrival_rate: float, target_url: str, client_request_time: int) -> None:
     # from now on, it will be executed with number_of_users
     load_generator = lg.LoadGenerator(number_of_users, arrival_rate, target_url, client_request_time)
+    load_generator.refresh_server(number_of_users)
     load_generator.generate_load()
+    load_generator.get_server_status()  # Get server status after each simulation
