@@ -18,11 +18,3 @@ VOLUME ["/app"]
 
 # Run the application with the specified command
 CMD ["/bin/bash"]
-
-# Create the volume
-#       docker create volume World
-# Build the application
-#       docker build -t speproject . 
-# Launch the application with the specified command
-#       docker run -it -v .:/app speproject
-# In the 

@@ -24,7 +24,7 @@ def start_load_simulation(system_config: Config) -> None:
     file.delete_file_if_exists(file.CSV_FILENAME)
     save_metrics_plot(system_config, theoretical_metrics, system_metrics)
     print("[DEBUG] end of simulation!")
-
+    exit(0)
 
 def _run_load_simulation(number_of_users: int, arrival_rate: float, target_url: str, client_request_time: int) -> None:
     load_generator = lg.LoadGenerator(number_of_users, arrival_rate, target_url, client_request_time)

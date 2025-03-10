@@ -8,7 +8,6 @@ class CPUBoundTask:
         end_time = time.time() + duration
         while time.time() < end_time:
             x = CPUBoundTask._fibonacci(n, end_time)  # Call the private method
-            print(x)
 
     @staticmethod
     def _fibonacci(n, end_time):
