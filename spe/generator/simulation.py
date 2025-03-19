@@ -1,4 +1,5 @@
 import requests
+import requests
 import spe.generator.load_generator as lg
 import spe.utils.file as file
 from spe.utils.metric import compute_theoretical_metrics
@@ -20,7 +21,6 @@ def start_load_simulation(system_config: Config) -> None:
 
     for number_of_users in user_range:
         _run_load_simulation(number_of_users, arrival_rate, TARGET_URL, client_request_time)
-        response = requests.get(TARGET_URL + "/eval")
 
     system_metrics = file.read_csv(file.CSV_FILENAME)
     file.delete_file_if_exists(file.CSV_FILENAME)
