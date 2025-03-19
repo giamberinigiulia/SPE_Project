@@ -12,7 +12,8 @@ if __name__ == '__main__':
     parser = arg.create_parser()
     system_config = arg.parse_arguments(parser)
 
-    response = requests.get(TARGET_URL + "/mu/" + str(system_config.service_rate))
+    print(TARGET_URL+ "/mu/" + str(system_config.service_rate))
+    response = requests.get(TARGET_URL+ "/mu/" + str(system_config.service_rate))
     print(response.text)
     simulation.start_load_simulation(system_config)
 
