@@ -10,3 +10,7 @@
 /data
 *__pycache__
 .dockerignore
+
+# Ignore gunicorn logs
+access.log
+error.log
