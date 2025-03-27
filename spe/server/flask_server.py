@@ -13,13 +13,11 @@ from multiprocessing import Pool
 app = Flask(__name__)
 
 rng = np.random.default_rng(42)
-mu = 10 # default value 
 
 @app.route('/', methods=['GET'])
 def process_task():
     delay = rng.exponential(1 / mu) # <---- mu_value
     print(f"Delay sampled: {delay}")
-
     CPUBoundTask.run(delay)
 
     return jsonify({"message": "Task completed", "duration": delay})
