@@ -10,7 +10,7 @@ TARGET_URL = "http://127.0.0.1:5000"
 
 
 def start_load_simulation(system_config: Config) -> None:
-    print("[DEBUG] start_load_generator called")
+    print("[DEBUG] Simulation started: invoked start_load_simulation")
 
     arrival_rate = system_config.arrival_rate
     user_range = system_config.user_range
@@ -22,6 +22,7 @@ def start_load_simulation(system_config: Config) -> None:
     for number_of_users in user_range:
         _run_load_simulation(number_of_users, arrival_rate, TARGET_URL, client_request_time)
 
+    print("[DEBUG] Simulation finished: metric's plot generated")
     system_metrics = file.read_csv(file.CSV_FILENAME)
     file.delete_file_if_exists(file.CSV_FILENAME)
     save_metrics_plot(system_config, theoretical_metrics, system_metrics)

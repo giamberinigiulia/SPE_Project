@@ -30,7 +30,7 @@ def get_service_rate(mu_value):
     global mu
     mu = float(mu_value)
     # Perform any logic with the service_rate here
-    return jsonify({"service_rate": mu, "message": "Service rate received successfully!"})
+    return jsonify({"message": f"Service rate received successfully (mu: {mu})"})
 
 @app.route('/end', methods=['GET'])
 def end_server():

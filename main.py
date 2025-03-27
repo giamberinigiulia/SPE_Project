@@ -2,6 +2,7 @@ import time
 from multiprocessing import Process
 
 import requests
+import json
 
 from spe.generator import simulation
 import spe.argument_parser as arg
@@ -12,9 +13,9 @@ if __name__ == '__main__':
     parser = arg.create_parser()
     system_config = arg.parse_arguments(parser)
 
-    print(TARGET_URL+ "/mu/" + str(system_config.service_rate))
     response = requests.get(TARGET_URL+ "/mu/" + str(system_config.service_rate))
-    print(response.text)
+    response_data = json.loads(response.text)
+    print(f"[DEBUG] {response_data['message']}")
     simulation.start_load_simulation(system_config)
 
 """
