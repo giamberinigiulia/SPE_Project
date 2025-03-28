@@ -6,10 +6,8 @@ from spe.utils.metric import compute_theoretical_metrics
 from spe.utils.plot import save_metrics_plot
 from spe.argument_parser import Config
 
-TARGET_URL = "http://127.0.0.1:5000"
 
-
-def start_load_simulation(system_config: Config) -> None:
+def start_load_simulation(target_url: str, system_config: Config) -> None:
     print("[DEBUG] Simulation started: invoked start_load_simulation")
 
     arrival_rate = system_config.arrival_rate
@@ -20,7 +18,7 @@ def start_load_simulation(system_config: Config) -> None:
     theoretical_metrics = compute_theoretical_metrics(system_config)
 
     for number_of_users in user_range:
-        _run_load_simulation(number_of_users, arrival_rate, TARGET_URL, client_request_time)
+        _run_load_simulation(number_of_users, arrival_rate, target_url, client_request_time)
 
     print("[DEBUG] Simulation finished: metric's plot generated")
     system_metrics = file.read_csv(file.CSV_FILENAME)
