@@ -1,6 +1,34 @@
+"""
+File Utility Module.
+
+This module provides utility functions for handling CSV files and managing file operations.
+
+Functions:
+1. `delete_file_if_exists(file_path: str) -> None`:
+   Deletes a file if it exists at the specified path.
+
+2. `write_csv(csv_filename: str, avg_response_time: float, lower_bound: float, upper_bound: float) -> None`:
+   Appends a row of performance metrics (average response time, lower bound, upper bound) to a CSV file.
+
+3. `read_csv(csv_filename: str) -> List[MeasuredMetric]`:
+   Reads performance metrics from a CSV file and returns them as a list of `MeasuredMetric` objects.
+
+Constants:
+- `CSV_FILENAME`: Default path to the CSV file storing performance metrics.
+
+Modules Used:
+- `csv.writer`, `csv.reader`: For writing and reading CSV files.
+- `os`: For file operations like checking existence and deletion.
+- `typing`: For type annotations.
+- `spe.utils.metric.MeasuredMetric`: Represents a performance metric with average response time, lower bound, and upper bound.
+
+Usage:
+This module is intended to be used as a utility for managing performance metrics in CSV format.
+"""
+
 from csv import writer, reader
 import os
-from typing import List, Tuple
+from typing import List
 
 from spe.utils.metric import MeasuredMetric
 

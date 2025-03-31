@@ -1,3 +1,27 @@
+"""
+SPE Project Argument Parser Module.
+
+This module provides functionality for parsing command-line arguments to configure the system settings.
+It supports two modes of execution:
+1. JSON mode: Reads configuration from a JSON file.
+2. Run mode: Accepts configuration parameters directly from the command line.
+
+Classes:
+- `Config`: A dataclass that encapsulates system configuration parameters.
+
+Functions:
+- `create_parser()`: Creates and returns an ArgumentParser instance with subparsers for different modes.
+- `_add_arguments_subparser(subparser, command_name)`: Adds specific arguments to a subparser based on the mode.
+- `parse_arguments(parser)`: Parses the command-line arguments and returns a `Config` object.
+
+Usage:
+Import this module to parse arguments and retrieve system configuration.
+
+Example:
+    parser = create_parser()
+    config = parse_arguments(parser)
+"""
+
 from argparse import ArgumentParser
 from dataclasses import dataclass
 

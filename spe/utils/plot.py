@@ -1,3 +1,30 @@
+"""
+SPE Project Plotting Utilities.
+
+This module provides functions to generate and save plots for visualizing 
+theoretical and measured metrics, such as average response times and utilization.
+
+Functions:
+- `save_metrics_plot`: Creates a bar plot comparing theoretical and measured 
+  average response times, along with a line plot for theoretical utilization.
+
+Modules Used:
+- `matplotlib.pyplot`: For creating and saving plots.
+- `numpy`: For numerical operations.
+- `spe.argument_parser.Config`: For accessing system configuration details.
+- `spe.utils.metric`: For handling theoretical and measured metrics.
+
+Constants:
+- `FIGURE_FOLDER`: Directory where the generated plots are saved.
+
+Usage:
+Call the `save_metrics_plot` function with the required arguments to generate 
+and save a plot.
+
+Example:
+    save_metrics_plot(system_config, theoretical_metrics, measured_metrics)
+"""
+
 from typing import List
 
 import matplotlib.pyplot as plt
@@ -32,7 +59,19 @@ def save_metrics_plot(system_config: Config, theoretical_metrics: List[Theoretic
 
     ax1.set_xlabel("Number of clients")
     ax1.set_ylabel("Average response time")
-    ax1.set_title("Average response time and utilization: theoretical vs measured")
+    # ax1.set_title("Average response time and utilization: theoretical vs measured", loc='center')
+    
+    plt.suptitle('Average response time and utilization: theoretical vs measured', fontsize=14)
+
+    # Add simulation details as a subtitle below the title and above the plot and above the plot
+    simulation_info = (
+        f"[$\\mu$] = {system_config.service_rate}, "
+        f"[$\\lambda$] = {system_config.arrival_rate}, "
+        f"[$t$] = {system_config.user_request_time}, "
+        f"[$k$] = {system_config.number_of_servers}"
+    )
+    plt.title(simulation_info, fontsize=10, loc='center')
+
     ax1.legend(loc='upper left')
 
     ax2 = ax1.twinx()

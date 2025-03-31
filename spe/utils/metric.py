@@ -1,5 +1,37 @@
+"""
+Metric Computation Utilities for SPE Project.
+
+This module provides tools for computing both measured and theoretical metrics
+related to system performance. It includes statistical functions, helper methods
+for solving forward equations, and theoretical metrics for closed M/M/c queue systems.
+
+Key Features:
+1. Data Classes:
+   - `Metric`: Base class for metrics.
+   - `MeasuredMetric`: Includes confidence intervals for measured metrics.
+   - `TheoreticalMetric`: Includes utilization for theoretical metrics.
+
+2. Statistical Functions:
+   - `compute_confidence_interval`: Calculates confidence intervals for a dataset.
+   - `compute_mean`: Computes the mean of a dataset.
+
+3. Forward Equations:
+   - `_forward_equations`: Solves forward equations for a given rate matrix.
+   - `_compute_forward_equations`: Computes probabilities over time for a Markov chain.
+
+4. Theoretical Metrics:
+   - `compute_theoretical_metric_closed`: Computes metrics for a closed M/M/c queue.
+   - `compute_theoretical_metrics`: Computes metrics for a range of client counts.
+
+Usage:
+Import this module to compute metrics for system performance analysis.
+
+Example:
+    from spe.utils.metric import compute_theoretical_metrics
+    metrics = compute_theoretical_metrics(system_config)
+"""
+
 from dataclasses import dataclass
-import math
 from typing import List, Tuple
 
 import numpy as np
