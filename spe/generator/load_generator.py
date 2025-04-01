@@ -4,7 +4,7 @@ from multiprocessing import Process, Queue
 import requests
 import numpy as np
 
-from spe.utils.metric import compute_mean, compute_confidence_interval
+from spe.utils.metric import compute_mean, compute_confidence_intervals
 from spe.utils.file import write_csv
 
 
@@ -59,6 +59,6 @@ class LoadGenerator:
             response_times.extend(queue.get())
 
         avg_response_time = compute_mean(response_times)
-        ci = compute_confidence_interval(response_times)
+        ci = compute_confidence_intervals(response_times)
         write_csv("data/metrics.csv", avg_response_time, ci[0], ci[1])
        

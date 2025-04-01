@@ -45,7 +45,7 @@ $ pip install -r requirements.txt
 
 ### Local mode
 
-After cloning the repository and installing all necessarty dependencies, simply use the following command:
+After cloning the repository and installing all necessary dependencies, simply use the following command:
 
 ```bash
 $ python main.py run -s <service_rate> -a <arrival_rate> -u <user_range_start> <user_range_end> -t <max_time> -k <number_of_servers>

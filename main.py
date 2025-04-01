@@ -6,13 +6,14 @@ This script executes the following steps:
 2. Launches a Gunicorn server to host the Flask application.
 3. Sends an HTTP request to configure the server's service rate.
 4. Initiates a load simulation to evaluate server performance.
+5. Terminates the Gunicorn server after the simulation completes.
 
 Modules Used:
 - `time`: Introduces delays during execution.
 - `requests`: Sends HTTP requests to interact with the server.
 - `spe.generator.simulation`: Manages the load simulation logic.
 - `spe.argument_parser`: Provides tools for parsing command-line arguments.
-- `spe.server.gunicorn_launcher`: Handles Gunicorn server initialization.
+- `spe.server.gunicorn_launcher`: Handles Gunicorn server initialization and termination.
 
 Constants:
 - `PROTOCOL`: Defines the HTTP protocol (default: "http://").
@@ -40,19 +41,12 @@ ACCESS_LOG = "access.log"
 ERROR_LOG = "error.log"
 
 if __name__ == '__main__':
-    # print the start time of the simulation only with hh_mm:ss format
     print("[INFO] Simulation launched at:", time.strftime("%H:%M:%S", time.localtime()))
-    
-    # Parse arguments from system_config
     parser = arg.create_parser()
     system_config = arg.parse_arguments(parser)
-
-    # Delete previous Gunicorn processes and Start Gunicorn
-    gunicorn_manager.end_gunicorn()
-    gunicorn_manager.start_gunicorn(TARGET_HOST, ACCESS_LOG, ERROR_LOG, system_config)
-
-    # Continue with the rest of the script
+    gunicorn_process = gunicorn_manager.start_gunicorn(TARGET_HOST, ACCESS_LOG, ERROR_LOG, system_config)
     response = requests.get(f"{PROTOCOL + TARGET_HOST}/mu/{system_config.service_rate}")
+    
     if response.status_code != 200:
         print(f"[ERROR] Failed to set service rate: {response.status_code}")
         exit(1)
@@ -62,3 +56,5 @@ if __name__ == '__main__':
 
     time.sleep(2)
     simulation.start_load_simulation(PROTOCOL + TARGET_HOST, system_config)
+    gunicorn_manager.end_gunicorn(gunicorn_process)
+

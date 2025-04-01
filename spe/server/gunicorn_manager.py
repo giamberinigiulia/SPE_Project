@@ -4,6 +4,7 @@ Gunicorn Server Launcher Script.
 This script performs the following tasks:
 1. Deletes old log files (if they exist) to ensure fresh logging.
 2. Configures and launches a Gunicorn server instance with the specified parameters.
+3. Provides a function to terminate the Gunicorn server process gracefully.
 
 Modules Used:
 - `subprocess`: Executes the Gunicorn server as a subprocess.
@@ -13,6 +14,7 @@ Modules Used:
 
 Functions:
 - `start_gunicorn`: Deletes old log files and starts the Gunicorn server.
+- `end_gunicorn`: Terminates the Gunicorn server process.
 
 Parameters:
 - `target_url`: The URL to bind the Gunicorn server to (e.g., "127.0.0.1:5000").
@@ -58,19 +60,30 @@ def start_gunicorn(target_url, access_log, error_log, system_config: Config) -> 
     print(f"[INFO] Starting Gunicorn on {target_url} with {num_servers} workers...")
 
     # Start Gunicorn as a subprocess
-    subprocess.Popen(gunicorn_cmd) 
+    process = subprocess.Popen(gunicorn_cmd) 
 
     # Wait a bit to ensure Gunicorn starts
     time.sleep(2)
 
     print("[INFO] Gunicorn started successfully!")
 
+    return process
 
-def end_gunicorn() -> None:
+def end_gunicorn(process: subprocess.Popen) -> None:
     """
     Terminates the Gunicorn server process.
+    
+    Args:
+        process: The subprocess.Popen object representing the Gunicorn process
     """
-    try:
-        subprocess.run(["killall", "gunicorn"], check=True)
-    except subprocess.CalledProcessError:
-        pass
+    if process is not None:
+        print("[INFO] Stopping Gunicorn server...")
+        try:
+            process.terminate()
+            process.wait(timeout=5)
+            print("[INFO] Gunicorn stopped successfully")
+        except subprocess.TimeoutExpired:
+            print("[WARN] Gunicorn termination timed out, forcing shutdown...")
+            process.kill()
+        except Exception as e:
+            print(f"[ERROR] Error stopping Gunicorn: {e}")
