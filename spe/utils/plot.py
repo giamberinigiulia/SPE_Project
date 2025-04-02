@@ -35,10 +35,12 @@ from spe.utils.metric import MeasuredMetric, TheoreticalMetric
 
 FIGURE_FOLDER = "data/"
 
-def save_metrics_plot(system_config: Config, theoretical_metrics: List[TheoreticalMetric], measured_metrics: List[MeasuredMetric]) -> None:
+def save_metrics_plot(system_config: Config, theoretical_metrics: List[TheoreticalMetric], measured_metrics: List[MeasuredMetric], utilizations: List) -> None:
     user_range = system_config.user_range
     theoretical_arts = [metric.avg_response_time for metric in theoretical_metrics]
-    theoretical_utils = [metric.utilization for metric in theoretical_metrics]
+    #Just swap the lines to use the theoretical utilization instead of the measured one
+    # theoretical_utils = [metric.utilization for metric in theoretical_metrics]
+    theoretical_utils = utilizations
     avg_response_times = [metric.avg_response_time for metric in measured_metrics]
     lower_bounds = [metric.lower_bound for metric in measured_metrics]
     upper_bounds = [metric.upper_bound for metric in measured_metrics]

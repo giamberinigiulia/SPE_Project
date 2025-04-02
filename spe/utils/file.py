@@ -13,6 +13,9 @@ Functions:
 3. `read_csv(csv_filename: str) -> List[MeasuredMetric]`:
    Reads performance metrics from a CSV file and returns them as a list of `MeasuredMetric` objects.
 
+4. `truncate_file(file_path: str) -> None`:
+   Clears the contents of a file without closing the handle.
+
 Constants:
 - `CSV_FILENAME`: Default path to the CSV file storing performance metrics.
 
@@ -58,3 +61,12 @@ def read_csv(csv_filename: str) -> List[MeasuredMetric]:
             measured_metrics.append(MeasuredMetric(avg_response_time, lower_bound, upper_bound))
     
     return measured_metrics
+
+
+def truncate_file(file_path: str) -> None:
+    """Clear the contents of a file without closing the handle."""
+    try:
+        with open(file_path, 'w') as f:
+            f.truncate(0)
+    except Exception as e:
+        print(f"Error truncating file {file_path}: {e}")
