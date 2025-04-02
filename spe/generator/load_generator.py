@@ -52,11 +52,33 @@ class LoadGenerator:
             processes.append(process)
             process.start()
 
+        join_timeout = self.client_request_time + 30
+        end_time = time.time() + self.client_request_time + 60
+
+        # This is needed to avoid memory leaks in the queue, so we read in small chunks
+        # otherwise when testing with 300 seconds and 15 clients, the load generator crashes
+        while time.time() < end_time and any(p.is_alive() for p in processes):
+            try:
+                while not queue.empty():
+                    response_times.extend(queue.get(block=False))
+            except Exception as e:
+                print(f"Error reading from queue: {e}")
+            time.sleep(1)  # Avoid busy-waiting
+
         for process in processes:
-            process.join()
+            process.join(timeout=join_timeout)
+            
+            if process.is_alive():
+                print(f"Process {process.pid} did not terminate in time, forcing termination")
+                process.terminate()
+                process.join(1)
 
         while not queue.empty():
-            response_times.extend(queue.get())
+            try:
+                response_times.extend(queue.get(block=False))
+            except Exception as e:
+                print(f"Error reading the queue: {e}")
+        
 
         avg_response_time = compute_mean(response_times)
         ci = compute_confidence_intervals(response_times)
