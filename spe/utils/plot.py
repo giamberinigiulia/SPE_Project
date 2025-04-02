@@ -39,8 +39,8 @@ def save_metrics_plot(system_config: Config, theoretical_metrics: List[Theoretic
     user_range = system_config.user_range
     theoretical_arts = [metric.avg_response_time for metric in theoretical_metrics]
     #Just swap the lines to use the theoretical utilization instead of the measured one
-    # theoretical_utils = [metric.utilization for metric in theoretical_metrics]
-    theoretical_utils = utilizations
+    theoretical_utils = [metric.utilization for metric in theoretical_metrics]
+    measured_utils = utilizations
     avg_response_times = [metric.avg_response_time for metric in measured_metrics]
     lower_bounds = [metric.lower_bound for metric in measured_metrics]
     upper_bounds = [metric.upper_bound for metric in measured_metrics]
@@ -74,12 +74,13 @@ def save_metrics_plot(system_config: Config, theoretical_metrics: List[Theoretic
     )
     plt.title(simulation_info, fontsize=10, loc='center')
 
-    ax1.legend(loc='upper left')
+    ax1.legend(loc='upper left', bbox_to_anchor=(0, 1))
 
     ax2 = ax1.twinx()
     ax2.plot(x, theoretical_utils, label='Theoretical Utils', color='green', marker='o')
+    ax2.plot(x, measured_utils, label='Measured Utils', color='purple', marker='^')
     ax2.set_ylabel("Utilization")
-    ax2.legend(loc='upper right')
+    ax2.legend(loc='upper left', bbox_to_anchor=(0, 0.85))
 
     fig.tight_layout()
 
