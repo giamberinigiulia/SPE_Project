@@ -40,21 +40,25 @@ TARGET_HOST = "127.0.0.1:5000"
 ACCESS_LOG = "access.log"
 ERROR_LOG = "error.log"
 
+
+def configure_service_rate(service_rate: float) -> None:
+    response = requests.get(f"{PROTOCOL + TARGET_HOST}/mu/{service_rate}")
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"Failed to set service rate. Status code: {response.status_code}, Response: {response.text}"
+        )
+
+
 if __name__ == '__main__':
     print("[INFO] Simulation launched at:", time.strftime("%H:%M:%S", time.localtime()))
     parser = arg.create_parser()
     system_config = arg.parse_arguments(parser)
-    gunicorn_process = gunicorn_manager.start_gunicorn(TARGET_HOST, ACCESS_LOG, ERROR_LOG, system_config)
-    response = requests.get(f"{PROTOCOL + TARGET_HOST}/mu/{system_config.service_rate}")
-    
-    if response.status_code != 200:
-        print(f"[ERROR] Failed to set service rate: {response.status_code}")
-        exit(1)
-    else:
-        message = response.json().get("message", "N/A")
-        print(f"[DEBUG] {message}")
-
-    time.sleep(2)
-    simulation.start_load_simulation(PROTOCOL + TARGET_HOST, system_config)
-    gunicorn_manager.end_gunicorn(gunicorn_process)
-
+    # the try-finally block is used to ensure that the Gunicorn processes are terminated even if an error occurs
+    try:
+        gunicorn_process = gunicorn_manager.start_gunicorn(TARGET_HOST, ACCESS_LOG, ERROR_LOG, system_config)
+        configure_service_rate(system_config.service_rate)
+        simulation.start_load_simulation(PROTOCOL + TARGET_HOST, system_config)
+    finally:
+        gunicorn_manager.end_gunicorn(gunicorn_process)
+    print("[INFO] Simulation ended at:", time.strftime("%H:%M:%S", time.localtime()))

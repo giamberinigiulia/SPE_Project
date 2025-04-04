@@ -32,50 +32,46 @@ Notes:
 
 import subprocess
 import time
+
 from spe.argument_parser import Config
 from spe.utils.file import delete_file_if_exists
+
 
 def start_gunicorn(target_url, access_log, error_log, system_config: Config) -> None:
     """
     Removes old log files and starts a Gunicorn server with the specified configuration, 
     including target URL, log paths, and worker processes.
     """
-    num_servers = system_config.number_of_servers  # Number of worker processes for handling requests
 
-    # Delete the log files if they exist
-    delete_file_if_exists(access_log) 
-    delete_file_if_exists(error_log) 
+    num_servers = system_config.number_of_servers
 
-    # Gunicorn command
+    delete_file_if_exists(access_log)
+    delete_file_if_exists(error_log)
     gunicorn_cmd = [
         "gunicorn",
         "-w", str(num_servers),  # Set the number of worker processes
         "-b", target_url,  # Bind Gunicorn to the specified target URL
-        "--access-logfile", access_log,  # Specify the access log file path
-        "--access-logformat", '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s %(p)s %(L)s',  # Log format for access logs
-        "--error-logfile", error_log,  # Specify the error log file path
+        "--access-logfile", access_log,
+        "--access-logformat", '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s %(p)s %(L)s',
+        "--error-logfile", error_log,
         "spe.server.flask_server:app"  # Reference to the Flask application
     ]
 
     print(f"[INFO] Starting Gunicorn on {target_url} with {num_servers} workers...")
-
-    # Start Gunicorn as a subprocess
-    process = subprocess.Popen(gunicorn_cmd) 
-
-    # Wait a bit to ensure Gunicorn starts
-    time.sleep(2)
-
+    process = subprocess.Popen(gunicorn_cmd)
+    time.sleep(2)  # This sleep is needed to ensure Gunicorn starts correctly
     print("[INFO] Gunicorn started successfully!")
-
     return process
+
 
 def end_gunicorn(process: subprocess.Popen) -> None:
     """
     Terminates the Gunicorn server process.
-    
+
     Args:
         process: The subprocess.Popen object representing the Gunicorn process
     """
+
     if process is not None:
         print("[INFO] Stopping Gunicorn server...")
         try:

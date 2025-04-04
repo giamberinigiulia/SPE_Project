@@ -67,7 +67,7 @@ class LoadGenerator:
 
         for process in processes:
             process.join(timeout=join_timeout)
-            
+
             if process.is_alive():
                 print(f"Process {process.pid} did not terminate in time, forcing termination")
                 process.terminate()
@@ -78,9 +78,7 @@ class LoadGenerator:
                 response_times.extend(queue.get(block=False))
             except Exception as e:
                 print(f"Error reading the queue: {e}")
-        
 
         avg_response_time = compute_mean(response_times)
         ci = compute_confidence_intervals(response_times)
         write_csv("data/metrics.csv", avg_response_time, ci[0], ci[1])
-       
