@@ -53,7 +53,7 @@ def compute_confidence_intervals(data: List[float]) -> Tuple[float, float]:
 
 def compute_theoretical_metrics(system_config: Config) -> List[TheoreticalMetric]:
     """
-    Computes theoretical metrics for each client count in the system_config.user_range.
+    Computes the average reponse time and the server utilization for a closed M/M/c queue system.
 
     Args:
         system_config: Configuration containing service parameters and user range.
