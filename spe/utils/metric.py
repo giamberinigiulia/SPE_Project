@@ -1,15 +1,15 @@
 """This module provides tools for computing theoretical average response time (ART), utilization and statistics
 related to system performance. 
 """
-
 from dataclasses import dataclass
+import re
 from typing import List, Tuple
 
 import numpy as np
 from scipy import stats
 from scipy.integrate import solve_ivp
 
-from spe.argument_parser import Config
+from spe.utils.argument_parser import Config
 
 INITIAL_STATE = 0
 CONFIDENCE_LEVEL = 0.90
@@ -20,6 +20,7 @@ class MeasuredMetric():
     avg_response_time: float
     lower_bound: float
     upper_bound: float
+    utilization: float
 
 
 @dataclass
@@ -49,6 +50,37 @@ def compute_confidence_intervals(data: List[float]) -> Tuple[float, float]:
     margin_of_error = (std / np.sqrt(number_of_observations)) * \
         stats.t.ppf((1 + CONFIDENCE_LEVEL) / 2, number_of_observations - 1)
     return (mean - margin_of_error, mean + margin_of_error)
+
+
+def compute_utilization_from_logs(log_file_path: str, simulation_duration: int, num_servers: int) -> float:
+    """
+    Calculate server utilization from Gunicorn access logs.
+
+    Args:
+        log_file_path: Path to the access log file
+        simulation_duration: Total duration of the simulation in seconds
+        num_servers: Number of server workers (c in M/M/c/K)
+
+    Returns:
+        float: Utilization as a value between 0 and 1
+
+    Notes:
+        the log format is assumed to be something like: '... 200 1024 <requestID> 0.123'
+    """
+    pattern = r'.*" \d+ \d+ <\d+> ([\d.]+)'
+    request_times = []
+
+    with open(log_file_path, 'r') as f:
+        for line in f:
+            match = re.search(pattern, line)
+            if match:
+                duration = float(match.group(1))  # Request duration in seconds
+                request_times.append(duration)
+
+    total_busy_time = sum(request_times)
+    max_possible_busy_time = num_servers * simulation_duration
+    utilization = min(1.0, total_busy_time / max_possible_busy_time)
+    return utilization
 
 
 def compute_theoretical_metrics(system_config: Config) -> List[TheoreticalMetric]:

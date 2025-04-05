@@ -5,7 +5,7 @@ import time
 
 import requests
 
-from spe.argument_parser import Config
+from spe.utils.argument_parser import Config
 from spe.utils.file import delete_file_if_exists
 
 

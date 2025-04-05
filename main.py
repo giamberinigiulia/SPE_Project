@@ -1,10 +1,9 @@
 """Main script for running the simulation of an M/M/c queue system."""
-
 import time
 
-from spe.generator import simulation
-import spe.argument_parser as arg
-from spe.server import gunicorn_manager as manager
+import spe.utils.argument_parser as arg
+import spe.server.gunicorn_manager as manager
+from spe.generator.simulation import run_load_simulation
 
 PROTOCOL = "http://"
 TARGET_HOST = "127.0.0.1:5000"
@@ -30,7 +29,7 @@ def main() -> None:
     try:
         gunicorn_process = manager.start_gunicorn(TARGET_HOST, ACCESS_LOG, ERROR_LOG, system_config)
         manager.configure_service_rate(PROTOCOL + TARGET_HOST, system_config.service_rate)
-        simulation.start_load_simulation(PROTOCOL + TARGET_HOST, system_config)
+        run_load_simulation(PROTOCOL + TARGET_HOST, system_config)
     finally:
         manager.end_gunicorn(gunicorn_process)
     print("[INFO] Simulation ended at:", time.strftime("%H:%M:%S", time.localtime()))
