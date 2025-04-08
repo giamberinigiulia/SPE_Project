@@ -1,72 +1,45 @@
-"""
-File Utility Module.
-
-This module provides utility functions for handling CSV files and managing file operations.
-
-Functions:
-1. `delete_file_if_exists(file_path: str) -> None`:
-   Deletes a file if it exists at the specified path.
-
-2. `write_csv(csv_filename: str, avg_response_time: float, lower_bound: float, upper_bound: float) -> None`:
-   Appends a row of performance metrics (average response time, lower bound, upper bound) to a CSV file.
-
-3. `read_csv(csv_filename: str) -> List[MeasuredMetric]`:
-   Reads performance metrics from a CSV file and returns them as a list of `MeasuredMetric` objects.
-
-4. `truncate_file(file_path: str) -> None`:
-   Clears the contents of a file without closing the handle.
-
-Constants:
-- `CSV_FILENAME`: Default path to the CSV file storing performance metrics.
-
-Modules Used:
-- `csv.writer`, `csv.reader`: For writing and reading CSV files.
-- `os`: For file operations like checking existence and deletion.
-- `typing`: For type annotations.
-- `spe.utils.metric.MeasuredMetric`: Represents a performance metric with average response time, lower bound, and upper bound.
-
-Usage:
-This module is intended to be used as a utility for managing performance metrics in CSV format.
-"""
-
+"""This module provides utility functions for handling CSV files and managing file operations."""
 from csv import writer, reader
 import os
 from typing import List
 
 from spe.utils.metric import MeasuredMetric
 
-CSV_FILENAME = "data/metrics.csv"
+CSV_PATH = "data/metrics.csv"
 
 
-def delete_file_if_exists(file_path: str) -> None:
-    if os.path.exists(file_path):
-        os.remove(file_path)
-
-
-def write_csv(csv_filename: str, avg_response_time: float, lower_bound: float, upper_bound: float) -> None:
-    with open(csv_filename, 'a', newline='') as csv_file:
+def write_metrics_to_csv(path: str, metrics: MeasuredMetric) -> None:
+    with open(path, 'a', newline='') as csv_file:
         wr = writer(csv_file)
-        wr.writerow([avg_response_time, lower_bound, upper_bound])
+        wr.writerow([metrics.avg_response_time, metrics.lower_bound,
+                    metrics.upper_bound, metrics.utilization])
 
 
-def read_csv(csv_filename: str) -> List[MeasuredMetric]:
+def read_metrics_from_csv(path: str) -> List[MeasuredMetric]:
     measured_metrics = []
 
-    with open(csv_filename, 'r', newline='') as csv_file:
+    with open(path, 'r', newline='') as csv_file:
         csv_reader = reader(csv_file)
         for metrics in csv_reader:
             avg_response_time = float(metrics[0])
             lower_bound = float(metrics[1])
             upper_bound = float(metrics[2])
-            measured_metrics.append(MeasuredMetric(avg_response_time, lower_bound, upper_bound))
-    
+            utilization = float(metrics[3])
+            measured_metrics.append(MeasuredMetric(
+                avg_response_time, lower_bound, upper_bound, utilization))
+
     return measured_metrics
 
 
-def truncate_file(file_path: str) -> None:
+def delete_file_if_exists(path: str) -> None:
+    if os.path.exists(path):
+        os.remove(path)
+
+
+def truncate_file(path: str) -> None:
     """Clear the contents of a file without closing the handle."""
     try:
-        with open(file_path, 'w') as f:
+        with open(path, 'w') as f:
             f.truncate(0)
     except Exception as e:
-        print(f"Error truncating file {file_path}: {e}")
+        print(f"Error truncating file {path}: {e}")

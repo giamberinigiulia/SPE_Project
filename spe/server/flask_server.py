@@ -1,100 +1,67 @@
-"""
-SPE Project Flask Server.
-
-This script implements a Flask-based server that performs the following tasks:
-1. Handles HTTP requests to process CPU-bound tasks with an exponential delay.
-2. Allows dynamic configuration of the service rate (`mu`) via a REST API.
-3. Provides an endpoint to terminate the server gracefully.
-
-Modules Used:
-- `os`: Handles file operations and process management.
-- `signal`: Sends signals to terminate the server process.
-- `json`: Reads and writes JSON data for storing the service rate.
-- `flask`: Provides the web framework for handling HTTP requests.
-- `numpy`: Generates random numbers for simulating task delays.
-- `spe.server.cpubound_task`: Executes CPU-bound tasks.
-
-Constants:
-- `MU_FILE`: Path to the file where the service rate (`mu`) is stored.
+"""This module implements a Flask-based server for processing CPU-bound tasks with an exponential delay.
 
 Endpoints:
 1. `/` (GET): Processes a CPU-bound task with a delay sampled from an exponential distribution.
-2. `/mu/<mu_value>` (GET): Updates the service rate (`mu`) dynamically.
-3. `/end` (GET): Terminates the server process.
+2. `/mu/<service_rate>` (GET): Updates the service rate (`mu`) dynamically.
 """
 
 import os
-import signal
 import json
-import subprocess
-from flask import Flask, jsonify
+
 import numpy as np
-import psutil
+from flask import Flask, jsonify, Response
 
 from spe.server.cpubound_task import CPUBoundTask
 
+
+MU_FILE_PATH = '/tmp/mu_value.json'  # this is needed to persist the mu value across multiple runs
+
 app = Flask(__name__)
-
-# Path to the file where the shared 'mu' value will be stored
-MU_FILE = '/tmp/mu_value.json'
-
-# Initialize the value of mu from the file (if exists) or set it to default (1.0)
-def load_mu():
-    """
-    Load the service rate (`mu`) from the file if it exists, otherwise return the default value (1.0).
-    """
-    if os.path.exists(MU_FILE):
-        with open(MU_FILE, 'r') as f:
-            return json.load(f).get('mu', 1.0)
-    return 1.0
-
-# Store the value of mu in the file
-def store_mu(mu_value):
-    """
-    Store the service rate (`mu`) in the file for persistence.
-    """
-    with open(MU_FILE, 'w') as f:
-        json.dump({"mu": mu_value}, f)
-
-# Shared random number generator
 rng = np.random.default_rng(42)
 
+
 @app.route('/', methods=['GET'])
-def process_task():
+def process_task() -> Response:
     """
-    Process a CPU-bound task with a delay sampled from an exponential distribution.
-    The delay is inversely proportional to the service rate (`mu`).
+    Load the service rate mu and use it for processing a CPU-bound task. 
+    This simulates the server's thinking time of the M/M/c queue.
     """
-    # Read 'mu' from the file
-    mu = load_mu()
+    mu = _load_service_rate()
     delay = rng.exponential(1 / mu)
     print(f"[DEBUG] Delay sampled: {delay} \t mu: {mu}")
-    
-    # Execute the CPU-bound task with the sampled delay
     CPUBoundTask.run(delay)
-
     return jsonify({"message": "Task completed", "duration": delay})
 
-@app.route('/mu/<mu_value>', methods=['GET'])
-def get_service_rate(mu_value):
+
+@app.route('/mu/<service_rate>', methods=['GET'])
+def get_service_rate(service_rate: str) -> Response:
     """
     Update the service rate (`mu`) dynamically via the URL parameter.
     The new value is stored in the file for persistence.
     """
-    # Convert the URL parameter to a float and update 'mu'
-    mu_value = float(mu_value)
-    store_mu(mu_value)
-    print(f"[INFO] Updated mu: {mu_value}")
+    service_rate = float(service_rate)
+    _store_service_rate(service_rate)
+    print(f"[INFO] Updated mu: {service_rate}")
+    return jsonify({"message": f"Service rate updated successfully (mu: {service_rate})"})
 
-    return jsonify({"message": f"Service rate updated successfully (mu: {mu_value})"})
 
-@app.route('/end', methods=['GET'])
-def end_server():
+def _load_service_rate() -> float:
     """
-    Terminate the server process gracefully by sending a SIGINT signal.
+    Load the service rate (`mu`) from the file if it exists, otherwise return the default value (1.0).
     """
-    os.kill(os.getppid(), signal.SIGINT)
-    return jsonify({"message": "Server ended"})
+    if os.path.exists(MU_FILE_PATH):
+        with open(MU_FILE_PATH, 'r') as f:
+            return json.load(f).get('mu', 1.0)
+    return 1.0
+
+
+def _store_service_rate(service_rate: float) -> None:
+    """
+    Store the service rate (`mu`) in the file for persistence.
+    """
+    with open(MU_FILE_PATH, 'w') as f:
+        json.dump({"mu": service_rate}, f)
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
