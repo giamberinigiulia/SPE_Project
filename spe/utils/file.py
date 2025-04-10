@@ -9,6 +9,11 @@ CSV_PATH = "data/metrics.csv"
 
 
 def write_metrics_to_csv(path: str, metrics: MeasuredMetric) -> None:
+    """"Write measured metrics to a CSV file, creating the directory if it doesn't exist."""
+    directory = os.path.dirname(path)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+
     with open(path, 'a', newline='') as csv_file:
         wr = writer(csv_file)
         wr.writerow([metrics.avg_response_time, metrics.lower_bound,
@@ -43,4 +48,3 @@ def truncate_file(path: str) -> None:
             f.truncate(0)
     except Exception as e:
         print(f"Error truncating file {path}: {e}")
-

@@ -4,7 +4,6 @@ Endpoints:
 1. `/` (GET): Processes a CPU-bound task with a delay sampled from an exponential distribution.
 2. `/mu/<service_rate>` (GET): Updates the service rate (`mu`) dynamically.
 """
-
 import os
 import json
 

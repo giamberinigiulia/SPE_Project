@@ -23,10 +23,8 @@ def run_load_simulation(target_url: str, system_config: Config) -> None:
 
     system_metrics = file.read_metrics_from_csv(file.CSV_PATH)
     save_metrics_plot(system_config, theoretical_metrics, system_metrics)
-    print("Simulation finished: metrics' plot generated successfully")
+    print("[INFO] Simulation finished: metrics' plot generated successfully")
 
-    response = requests.get(TARGET_URL + "/end")
-    print(response.text)
 
 def _collect_measured_metrics(target_url: str, number_of_users: int, system_config: Config) -> None:
     """

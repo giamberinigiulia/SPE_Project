@@ -1,5 +1,4 @@
 """This module contains functions to manage the Gunicorn HTTP server."""
-
 import subprocess
 import time
 

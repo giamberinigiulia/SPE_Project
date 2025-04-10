@@ -1,5 +1,4 @@
 """This module provides functionality for parsing command-line arguments to configure the system settings."""
-
 from argparse import ArgumentParser
 from dataclasses import dataclass
 
