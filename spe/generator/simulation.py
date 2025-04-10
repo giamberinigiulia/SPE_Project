@@ -25,6 +25,8 @@ def run_load_simulation(target_url: str, system_config: Config) -> None:
     save_metrics_plot(system_config, theoretical_metrics, system_metrics)
     print("Simulation finished: metrics' plot generated successfully")
 
+    response = requests.get(TARGET_URL + "/end")
+    print(response.text)
 
 def _collect_measured_metrics(target_url: str, number_of_users: int, system_config: Config) -> None:
     """

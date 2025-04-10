@@ -13,7 +13,6 @@ from flask import Flask, jsonify, Response
 
 from spe.server.cpubound_task import CPUBoundTask
 
-
 MU_FILE_PATH = '/tmp/mu_value.json'  # this is needed to persist the mu value across multiple runs
 
 app = Flask(__name__)

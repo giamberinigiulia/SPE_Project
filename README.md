@@ -51,6 +51,13 @@ After cloning the repository and installing all necessary dependencies, simply u
 $ python main.py run -s <service_rate> -a <arrival_rate> -u <user_range_start> <user_range_end> -t <max_time> -k <number_of_servers>
 ```
 
+### Docker
+
+```bash
+$ docker run --rm -v $(pwd)/data:/app/data spe python main.py run -s 10 -a 5 -u 1 2 -t 10 -k 2
+```
+
+
 ### Example
 
 Here is an example of how to run the application with a service rate of 10, an arrival rate of 5, a user range of 1 to 10, a maximum time of 60 seconds, and 4 servers:
