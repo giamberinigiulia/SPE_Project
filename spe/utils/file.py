@@ -1,34 +1,46 @@
+"""This module provides utility functions for handling CSV files and managing file operations."""
 from csv import writer, reader
 import os
-from typing import List, Tuple
+from typing import List
 
 from spe.utils.metric import MeasuredMetric
 
-CSV_FILENAME = "data/metrics.csv"
+CSV_PATH = "data/metrics.csv"
 
 
-def delete_file_if_exists(file_path: str) -> None:
-    if os.path.exists(file_path):
-        os.remove(file_path)
-
-
-def write_csv(csv_filename: str, avg_response_time: float, lower_bound: float, upper_bound: float) -> None:
-    if not os.path.exists(csv_filename.split("/")[0]):
-        os.makedirs(csv_filename.split("/")[0])
-    with open(csv_filename, 'a', newline='') as csv_file:
+def write_metrics_to_csv(path: str, metrics: MeasuredMetric) -> None:
+    with open(path, 'a', newline='') as csv_file:
         wr = writer(csv_file)
-        wr.writerow([avg_response_time, lower_bound, upper_bound])
+        wr.writerow([metrics.avg_response_time, metrics.lower_bound,
+                    metrics.upper_bound, metrics.utilization])
 
 
-def read_csv(csv_filename: str) -> List[MeasuredMetric]:
+def read_metrics_from_csv(path: str) -> List[MeasuredMetric]:
     measured_metrics = []
 
-    with open(csv_filename, 'r', newline='') as csv_file:
+    with open(path, 'r', newline='') as csv_file:
         csv_reader = reader(csv_file)
         for metrics in csv_reader:
             avg_response_time = float(metrics[0])
             lower_bound = float(metrics[1])
             upper_bound = float(metrics[2])
-            measured_metrics.append(MeasuredMetric(avg_response_time, lower_bound, upper_bound))
-    
+            utilization = float(metrics[3])
+            measured_metrics.append(MeasuredMetric(
+                avg_response_time, lower_bound, upper_bound, utilization))
+
     return measured_metrics
+
+
+def delete_file_if_exists(path: str) -> None:
+    if os.path.exists(path):
+        os.remove(path)
+
+
+def truncate_file(path: str) -> None:
+    """Clear the contents of a file without closing the handle."""
+    try:
+        with open(path, 'w') as f:
+            f.truncate(0)
+    except Exception as e:
+        print(f"Error truncating file {path}: {e}")
+

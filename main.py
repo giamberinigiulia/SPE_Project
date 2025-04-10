@@ -1,26 +1,39 @@
+"""Main script for running the simulation of an M/M/k queue system."""
 import time
-from multiprocessing import Process
 
-from spe.generator import simulation
-import spe.argument_parser as arg
-from spe.server.flask_server import FlaskServer
+import spe.utils.argument_parser as arg
+import spe.server.gunicorn_manager as manager
+from spe.generator.simulation import run_load_simulation
 
-# Maybe is possible to move this class in flask server module
-def start_server(system_config: arg.Config) -> None:
-    # Create a Server instance and run it
-    server = FlaskServer(system_config.service_rate, system_config.number_of_servers)
-    server.run()
+PROTOCOL = "http://"
+TARGET_HOST = "127.0.0.1:5000"
+ACCESS_LOG = "access.log"
+ERROR_LOG = "error.log"
+
+
+def main() -> None:
+    """
+    Execute the M/M/k queue simulation workflow.
+
+    This function:
+    1. Parses command line arguments to configure the simulation
+    2. Starts a Gunicorn server with the specified configuration
+    3. Configures the service rate for request processing
+    4. Launches the load simulation against the target endpoint
+    5. Ensures the Gunicorn server is properly terminated after simulation
+    """
+    print("[INFO] Simulation launched at:", time.strftime("%H:%M:%S", time.localtime()))
+    parser = arg.create_parser()
+    system_config = arg.parse_arguments(parser)
+    # the try-finally block is used to ensure that the Gunicorn processes are terminated even if an error occurs
+    try:
+        gunicorn_process = manager.start_gunicorn(TARGET_HOST, ACCESS_LOG, ERROR_LOG, system_config)
+        manager.configure_service_rate(PROTOCOL + TARGET_HOST, system_config.service_rate)
+        run_load_simulation(PROTOCOL + TARGET_HOST, system_config)
+    finally:
+        manager.end_gunicorn(gunicorn_process)
+    print("[INFO] Simulation ended at:", time.strftime("%H:%M:%S", time.localtime()))
 
 
 if __name__ == '__main__':
-    parser = arg.create_parser()
-    system_config = arg.parse_arguments(parser)
-
-    server = Process(target=start_server, args=[system_config])
-    server.start()
-    time.sleep(2)
-
-    simulation.start_load_simulation(system_config)
-    
-    server.terminate()
-    server.join()
+    main()
