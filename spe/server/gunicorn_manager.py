@@ -11,7 +11,7 @@ from spe.utils.file import delete_file_if_exists
 
 def start_gunicorn(target_url: str, access_log: str, error_log: str, system_config: Config) -> subprocess.Popen:
     """
-    Starts a Gunicorn server with the specified configuration for the M/M/c queue simulation.
+    Starts a Gunicorn server with the specified configuration for the M/M/k queue simulation.
 
     This function:
     1. Removes any existing log files to ensure clean output

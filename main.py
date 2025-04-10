@@ -1,4 +1,4 @@
-"""Main script for running the simulation of an M/M/c queue system."""
+"""Main script for running the simulation of an M/M/k queue system."""
 import time
 
 import spe.utils.argument_parser as arg
@@ -13,7 +13,7 @@ ERROR_LOG = "error.log"
 
 def main() -> None:
     """
-    Execute the M/M/c queue simulation workflow.
+    Execute the M/M/k queue simulation workflow.
 
     This function:
     1. Parses command line arguments to configure the simulation

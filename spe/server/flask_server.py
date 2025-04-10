@@ -24,7 +24,7 @@ rng = np.random.default_rng(42)
 def process_task() -> Response:
     """
     Load the service rate mu and use it for processing a CPU-bound task. 
-    This simulates the server's thinking time of the M/M/c queue.
+    This simulates the server's thinking time of the M/M/k queue.
     """
     mu = _load_service_rate()
     delay = rng.exponential(1 / mu)

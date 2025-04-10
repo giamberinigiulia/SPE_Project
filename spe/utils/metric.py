@@ -85,7 +85,7 @@ def compute_utilization_from_logs(log_file_path: str, simulation_duration: int, 
 
 def compute_theoretical_metrics(system_config: Config) -> List[TheoreticalMetric]:
     """
-    Computes the average reponse time and the server utilization for a closed M/M/c queue system.
+    Computes the average reponse time and the server utilization for a closed M/M/k queue system.
 
     Args:
         system_config: Configuration containing service parameters and user range.
