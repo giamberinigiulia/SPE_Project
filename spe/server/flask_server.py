@@ -16,7 +16,7 @@ MU_FILE_PATH = '/tmp/mu_value.json'  # this is needed to persist the mu value ac
 
 app = Flask(__name__)
 rng = np.random.default_rng(42)
-
+mu = None # initial declaration of mu value to be loaded later
 
 @app.route('/', methods=['GET'])
 def process_task() -> Response:
@@ -24,7 +24,9 @@ def process_task() -> Response:
     Load the service rate mu and use it for processing a CPU-bound task. 
     This simulates the server's thinking time of the M/M/k queue.
     """
-    mu = _load_service_rate()
+    global mu
+    if mu is None: 
+        mu = _load_service_rate() # first initialization of mu value
     delay = rng.exponential(1 / mu)
     print(f"[DEBUG] Delay sampled: {delay} \t mu: {mu}")
     CPUBoundTask.run(delay)
